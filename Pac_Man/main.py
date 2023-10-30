@@ -8,8 +8,8 @@ class AI_Search_PacMan():
         pygame.init()
 
         # Initialize
-        self.BLOCK_SIZE = 32
-        self.WORLD_SIZE = 20
+        self.BLOCK_SIZE = 25
+        self.WORLD_SIZE = 25
         self.WIDTH = self.HEIGHT = self.WORLD_SIZE * self.BLOCK_SIZE
         self.TITLE = 'Pac - man AI Search'
 

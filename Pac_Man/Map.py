@@ -10,7 +10,7 @@ class Map:
 
         # Convert char to image
         self.char_to_image = {
-            1: pygame.transform.scale(pygame.image.load(f'assets/wall9.png'), (25,25)),
+            1: pygame.transform.scale(pygame.image.load(f'images/wall.png'), (25,25)),
             2: pygame.transform.scale(pygame.image.load(f'images/power.png'), (25,25))
         }
 
