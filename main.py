@@ -21,9 +21,9 @@ WIDTH, HEIGHT, level, pacman_pos = read_map(r'level_1/map_1.txt')
 
 # Load wall
 wall = pygame.transform.scale(pygame.image.load(f'assets/wall9.png'), (20, 20))
-
+space = pygame.transform.scale(pygame.image.load(f'assets/space.jpg'), (20, 20))
 # Create the Pygame window with the specified width and height
-screen = pygame.display.set_mode((650, 650))
+screen = pygame.display.set_mode((600, 450))
 pygame.display.set_caption("Pac-Man")
 
 timer = pygame.time.Clock()
@@ -64,11 +64,12 @@ def draw_board():
             
             # Draw food 2
             if level[i][j] == 2 and not flicker: 
-                pygame.draw.circle(screen, 'white', (j * num2 + (0.5 * num2) * 3, i * num1 + (0.5 * num1) * 2.5), 8)
+                pygame.draw.circle(screen, 'white', (j * num2 + (0.5 * num2) * 3.1, i * num1 + (0.5 * num1) * 3.1), 8 )
             
             # Draw wall
             if level[i][j] == 1:
                 screen.blit(wall, (j * num2 + (0.5 * num2) * 2, i * num1 + (0.5 * num1) * 2))
+                
 
 # Draw player - Pacman
 def draw_player():
