@@ -39,18 +39,23 @@ class Pacman(Sprite):
         elif self.direction == 3:
             self.screen.blit(pygame.transform.rotate(self.pacman_images[self.counter // 5], 270), self.rect)
 
-    def move_pacman(self):
-        # Copy the current position to a new rect
-        new_rect = self.rect.copy()
+    # def move_pacman(self):
+    #     # Copy the current position to a new rect
+    #     new_rect = self.rect.copy()
+    #     # Update Pac-Man's position based on the direction
+    #     if self.direction == 0 and self.rect.right < self.screen.get_rect().right \
+    #         and self.turns_allowed[0]:  # Right
+    #         self.rect.x = (self.rect.x // BLOCK_SIZE + 1) * BLOCK_SIZE
+    #     elif self.direction == 1 and self.rect.left > 0 and self.turns_allowed[1]:  # Left
+    #         self.rect.x = (self.rect.x // BLOCK_SIZE - 1) * BLOCK_SIZE
+    #     elif self.direction == 2 and self.rect.top > 0 and self.turns_allowed[2]:  # Up
+    #         self.rect.y = (self.rect.y // BLOCK_SIZE - 1) * BLOCK_SIZE
+    #     elif self.direction == 3 and self.rect.bottom < self.screen.get_rect().bottom \
+    #         and self.turns_allowed[3]:  # Down
+    #         self.rect.y = (self.rect.y // BLOCK_SIZE + 1) * BLOCK_SIZE
 
-        # Update Pac-Man's position based on the direction
-        if self.direction == 0 and self.rect.right < self.screen.get_rect().right \
-            and self.turns_allowed[0]:  # Right
-            self.rect.x = (self.rect.x // BLOCK_SIZE + 1) * BLOCK_SIZE
-        elif self.direction == 1 and self.rect.left > 0 and self.turns_allowed[1]:  # Left
-            self.rect.x = (self.rect.x // BLOCK_SIZE - 1) * BLOCK_SIZE
-        elif self.direction == 2 and self.rect.top > 0 and self.turns_allowed[2]:  # Up
-            self.rect.y = (self.rect.y // BLOCK_SIZE - 1) * BLOCK_SIZE
-        elif self.direction == 3 and self.rect.bottom < self.screen.get_rect().bottom \
-            and self.turns_allowed[3]:  # Down
-            self.rect.y = (self.rect.y // BLOCK_SIZE + 1) * BLOCK_SIZE
+    def move_pacman(self, tup):
+        # if path:
+        #     for tup in path:
+        self.rect.x = tup[1] * BLOCK_SIZE
+        self.rect.y = tup[0] * BLOCK_SIZE

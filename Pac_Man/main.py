@@ -21,17 +21,19 @@ class AI_Search_PacMan():
         # Read map
         self.map = Map(self)
         self.world, pacman_pos = self.map.load_level(1)
-        self.food = self.map.pos_food()
+        self.food = tuple(self.map.pos_food())
+
         # Create pacman
         self.pacman = Pacman(self, pacman_pos[0], pacman_pos[1])
 
-        # Level 1: Astar()
-        path_level_1_Astar = Astar(self.world, pacman_pos, self.food)
-        print(path_level_1_Astar)
+        # Path level 1 - Astar
+        self.path_level_1_Astar = Astar(self.world, pacman_pos, self.food)
+
     # Function Run Game
     def run_game(self):
-        self.fps = 30
+        self.fps = 5
         self.running = True
+        self.path_index = 0  # Initialize the index to the first coordinate in the path
 
         # Check event
         while self.running:
@@ -43,20 +45,31 @@ class AI_Search_PacMan():
 
             # Check events
             self._check_events()
+            
+            # Astar algorithm - level 1
+            if self.path_level_1_Astar:
+                tup = self.path_level_1_Astar[self.path_index]
+                # Update position Pacman and move
+                self.pacman.move_pacman(tup)            
+                self.path_index += 1  # Move to the next coordinate
+
+                # If we have reached the end of the path, stop moving
+                if self.path_index >= len(self.path_level_1_Astar):
+                    self.path_level_1_Astar = None  # Clear the path or add logic to handle this case
 
             # update screen
             self._update_screen()
 
-            # Update position Pacman and move
-            self.pacman.move_pacman()            
-
             pygame.display.flip()
             self.timer.tick(self.fps)
+
 
     def _check_events(self):
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 self.running = False
+
+            # Check key down
             if event.type == pygame.KEYDOWN:
                 self.pacman.turns_allowed = [False, False, False, False]
                 if event.key == pygame.K_RIGHT:
@@ -71,6 +84,8 @@ class AI_Search_PacMan():
                 if event.key == pygame.K_DOWN:
                     self.pacman.turns_allowed[3] = True
                     self.pacman.direction = 3
+
+            # Check key up
             if event.type == pygame.KEYUP:
                 if event.key == pygame.K_RIGHT:
                     self.pacman.turns_allowed[0] = False
@@ -80,6 +95,7 @@ class AI_Search_PacMan():
                     self.pacman.turns_allowed[2] = False
                 if event.key == pygame.K_DOWN:
                     self.pacman.turns_allowed[3] = False
+
     def _update_screen(self):
         self.screen.fill((0, 0, 0))
 

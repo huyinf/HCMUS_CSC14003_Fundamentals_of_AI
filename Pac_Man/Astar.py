@@ -1,11 +1,6 @@
 import heapq
 import math
 
-
-def __init__():
-    print("Astar")
-
-
 def Astar(map,start,goal):
 
     open_set = []
@@ -64,7 +59,6 @@ def Astar(map,start,goal):
     return None
 
 def get_neighbors(node, adjacency_matrix):
-    
     rows = len(adjacency_matrix)
     cols = len(adjacency_matrix[0])
     
@@ -72,22 +66,20 @@ def get_neighbors(node, adjacency_matrix):
     neighbors = []
 
     # left
-    if x > 0 and adjacency_matrix[x-1][y] != 0:
+    if x > 0 and adjacency_matrix[x-1][y] != 1:
         neighbors.append((x-1, y))
     # right
-    if x < rows-1 and adjacency_matrix[x+1][y] != 0:
+    if x < rows-1 and adjacency_matrix[x+1][y] != 1:
         neighbors.append((x+1, y))
     # down
-    if y > 0 and adjacency_matrix[x][y-1] != 0:
+    if y > 0 and adjacency_matrix[x][y-1] != 1:
         neighbors.append((x, y-1))
     # up
-    if y < cols-1 and adjacency_matrix[x][y+1] != 0:
+    if y < cols-1 and adjacency_matrix[x][y+1] != 1:
         neighbors.append((x, y+1))
 
     return neighbors
 
-
 # ecludian distance
 def cal_heuristic(node, dest):
     return math.sqrt((node[0] - dest[0]) ** 2 + (node[1] - dest[1]) ** 2)
-
