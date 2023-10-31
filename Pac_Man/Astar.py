@@ -63,7 +63,6 @@ def Astar(map,start,goal):
     # if there is no found path
     return None
 
-
 def get_neighbors(node, adjacency_matrix):
     
     rows = len(adjacency_matrix)

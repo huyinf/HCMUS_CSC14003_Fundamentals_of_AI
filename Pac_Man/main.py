@@ -22,16 +22,15 @@ class AI_Search_PacMan():
         self.map = Map(self)
         self.world, pacman_pos = self.map.load_level(1)
         self.food = self.map.pos_food()
-        
         # Create pacman
         self.pacman = Pacman(self, pacman_pos[0], pacman_pos[1])
 
         # Level 1: Astar()
-        path_level_1_Astar = Astar(self.world,(self.pacman.rect.x, self.pacman.rect.y), self.food)
+        path_level_1_Astar = Astar(self.world, pacman_pos, self.food)
         print(path_level_1_Astar)
     # Function Run Game
     def run_game(self):
-        self.fps = 60
+        self.fps = 30
         self.running = True
 
         # Check event

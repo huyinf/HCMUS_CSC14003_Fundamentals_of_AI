@@ -33,9 +33,6 @@ class Map:
         for y, row in enumerate(self.world):
             for x, block in enumerate(row):
                 image = self.char_to_image.get(block, None)
-                if self.world[y][x] == 2:
-                    self.food.append(x)
-                    self.food.append(y)
                 if image:
                     self.screen.blit(image, (x * BLOCK_SIZE, y * BLOCK_SIZE))
 
@@ -45,6 +42,6 @@ class Map:
             for x, block in enumerate(row):
                 image = self.char_to_image.get(block, None)
                 if self.world[y][x] == 2:
-                    self.food.append(x)
                     self.food.append(y)
+                    self.food.append(x)
         return self.food
