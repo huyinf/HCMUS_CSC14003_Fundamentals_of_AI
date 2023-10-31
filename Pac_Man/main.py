@@ -1,16 +1,16 @@
 import pygame
 from pacman import *
 from Map import *
-
+from Astar import *
 
 class AI_Search_PacMan():
     def __init__(self):
         pygame.init()
 
         # Initialize
-        self.BLOCK_SIZE = 25
-        self.WORLD_SIZE = 25
-        self.WIDTH = self.HEIGHT = self.WORLD_SIZE * self.BLOCK_SIZE
+        self.BLOCK_SIZE_SC = 25
+        self.WORLD_SIZE_SC = 25
+        self.WIDTH = self.HEIGHT = self.WORLD_SIZE_SC * self.BLOCK_SIZE_SC
         self.TITLE = 'Pac - man AI Search'
 
         # Set up environment: size, caption, ... for game app
@@ -21,10 +21,14 @@ class AI_Search_PacMan():
         # Read map
         self.map = Map(self)
         self.world, pacman_pos = self.map.load_level(1)
+        self.food = self.map.pos_food()
         
         # Create pacman
         self.pacman = Pacman(self, pacman_pos[0], pacman_pos[1])
 
+        # Level 1: Astar()
+        path_level_1_Astar = Astar(self.world,(self.pacman.rect.x, self.pacman.rect.y), self.food)
+        print(path_level_1_Astar)
     # Function Run Game
     def run_game(self):
         self.fps = 60
@@ -68,7 +72,15 @@ class AI_Search_PacMan():
                 if event.key == pygame.K_DOWN:
                     self.pacman.turns_allowed[3] = True
                     self.pacman.direction = 3
-
+            if event.type == pygame.KEYUP:
+                if event.key == pygame.K_RIGHT:
+                    self.pacman.turns_allowed[0] = False
+                if event.key == pygame.K_LEFT:
+                    self.pacman.turns_allowed[1] = False
+                if event.key == pygame.K_UP:
+                    self.pacman.turns_allowed[2] = False
+                if event.key == pygame.K_DOWN:
+                    self.pacman.turns_allowed[3] = False
     def _update_screen(self):
         self.screen.fill((0, 0, 0))
 
