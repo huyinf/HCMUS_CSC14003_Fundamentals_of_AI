@@ -85,7 +85,7 @@ class AI_Search_PacMan():
             # Load map at folder level/level-1/map2.txt
             self._read_map_level(1, 2)
             self.path_level_1_Astar = Astar(self.world, self.pacman_pos, self.food)
-        
+
         # Astar algorithm - level 1, move Pacman follow Astar
         if self.path_level_1_Astar:
             if self.path_index < len(self.path_level_1_Astar):
@@ -120,7 +120,7 @@ class AI_Search_PacMan():
 
 
     ''' ######################### Level 4 ############################### '''
-    def _state_curr_level_3(self):
+    def _state_curr_level_4(self):
             pass
     
     ''' ######################### Event ############################### '''
