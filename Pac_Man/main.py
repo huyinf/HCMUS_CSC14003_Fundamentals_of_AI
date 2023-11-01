@@ -20,7 +20,11 @@ class AI_Search_PacMan():
         
         # Read map
         self.map = Map(self)
-        self.world, pacman_pos = self.map.load_level(1)
+        
+        # Read map at folder level-1, map1.txt
+        self.world, pacman_pos = self.map.load_level(1,1)
+
+        # Get position food
         self.food = tuple(self.map.pos_food())
 
         # Create pacman
