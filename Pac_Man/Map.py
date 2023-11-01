@@ -1,6 +1,7 @@
 import pygame
 
 BLOCK_SIZE = 25
+WIDTH, HEIGHT = 800, 750
 
 class Map:  
     def __init__(self, ai_game):

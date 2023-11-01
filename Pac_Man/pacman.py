@@ -2,6 +2,7 @@ import pygame
 from pygame.sprite import Sprite
 
 BLOCK_SIZE = 25
+WIDTH, HEIGHT = 800, 750
 
 # Create pacman
 class Pacman(Sprite):

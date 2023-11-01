@@ -9,38 +9,18 @@ class AI_Search_PacMan():
         pygame.init()
 
         # Initialize
-        self.BLOCK_SIZE_SC = 25
-        self.WORLD_SIZE_SC = 25
-        self.WIDTH = self.HEIGHT = self.WORLD_SIZE_SC * self.BLOCK_SIZE_SC
+        self.WIDTH, self.HEIGHT = 850, 450
         self.TITLE = 'Pac - man AI Search'
 
         # Set up environment: size, caption, ... for game app
         self.screen = pygame.display.set_mode((self.WIDTH, self.HEIGHT))
         pygame.display.set_caption(self.TITLE)
         self.timer = pygame.time.Clock()
-        
-        # Read map
-        self.map = Map(self)
 
-        # Read map at folder level-{number1}, map{number2}.txt
-        self.world = self.map.load_level(2,1)
-        
-
-        # Get position ghost
-        ghost_pos = self.map._pos_ghost()
-        # Create ghost
-        self.ghost = Ghost(self, ghost_pos)
-
-        # Get position food
-        self.food = tuple(self.map._pos_food())
-
-        # Get position pacman
-        pacman_pos = self.map._pos_pacman()
-        # Create pacman
-        self.pacman = Pacman(self, pacman_pos[0], pacman_pos[1])
-
-        # Path level 1 - Astar
-        self.path_level_1_Astar = Astar(self.world, pacman_pos, self.food)
+        # set current map level
+        self.current_map_level = 2
+        self.path_level_1_Astar = None
+        self.path_index = 0
 
     # Function Run Game
     def run_game(self):
@@ -50,39 +30,107 @@ class AI_Search_PacMan():
 
         # Check event
         while self.running:
-            # animation pacman image
-            if self.pacman.counter < 19:
-                self.pacman.counter += 1
-            else:
-                self.pacman.counter = 0
-
             # Check events
             self._check_events()
             
-            # Astar algorithm - level 1, move Pacman follow Astar
-            if self.path_level_1_Astar:
-                tup = self.path_level_1_Astar[self.path_index]
-                
-                # Update position Pacman and move
-                self.pacman.move_pacman(tup)            
-                self.path_index += 1  # Move to the next coordinate
+            ''' Check current map level '''
+            # Current map level 1
+            if self.current_map_level == 1:
+                self._state_curr_level_1()
 
-                # If we have reached the end of the path, stop moving
-                if self.path_index >= len(self.path_level_1_Astar):
-                    self.path_level_1_Astar = None  # Clear the path or add logic to handle this case
+            # Current map level 2
+            elif self.current_map_level == 2:
+                self._state_curr_level_2()
 
+            # Current map level 3
+            elif self.current_map_level == 3:
+                self._state_curr_level_3()
+
+            # Current map level 4
+            elif self.current_map_level == 4:
+                self._state_curr_level_4()
+            
             # update screen
             self._update_screen()
 
             pygame.display.flip()
             self.timer.tick(self.fps)
 
+    ''' ######################### Read Map ############################### '''
 
+    # Read map level at folder level-{number1}, map{number2}.txt
+    def _read_map_level(self, number1, number2):
+        # Read map
+        self.map = Map(self)
+
+        # Read map at folder level/level-{number1}/map{number2}.txt
+        self.world = self.map.load_level(number1, number2)
+        
+        # Get position ghost
+        ghost_pos = self.map._pos_ghost()
+        # Create ghost
+        self.ghost = Ghost(self, ghost_pos)
+
+        # Get position food
+        self.food = tuple(self.map._pos_food())
+
+        # Get position pacman
+        self.pacman_pos = self.map._pos_pacman()
+        # Create pacman
+        self.pacman = Pacman(self, self.pacman_pos[0], self.pacman_pos[1])
+
+    ''' ######################### Level 1 ############################### '''
+    def _state_curr_level_1(self):
+        if self.path_level_1_Astar is None:
+            # Load map at folder level/level-1/map2.txt
+            self._read_map_level(1, 2)
+            self.path_level_1_Astar = Astar(self.world, self.pacman_pos, self.food)
+        
+        # Astar algorithm - level 1, move Pacman follow Astar
+        if self.path_level_1_Astar:
+            if self.path_index < len(self.path_level_1_Astar):
+                tup = self.path_level_1_Astar[self.path_index]
+
+                # Update position Pacman and move
+                self.pacman.move_pacman(tup)
+                self.path_index += 1  # Move to the next coordinate
+    
+    ''' ######################### Level 2 ############################### '''
+
+    # State current map level 2
+    def _state_curr_level_2(self):
+        if self.path_level_1_Astar is None:
+
+            # Load map at folder level/level-2/map1.txt
+            self._read_map_level(2, 1)
+            self.path_level_1_Astar = Astar(self.world, self.pacman_pos, self.food)
+        
+        # Astar algorithm - level 1, move Pacman follow Astar
+        if self.path_level_1_Astar:
+            if self.path_index < len(self.path_level_1_Astar):
+                tup = self.path_level_1_Astar[self.path_index]
+
+                # Update position Pacman and move
+                self.pacman.move_pacman(tup)
+                self.path_index += 1  # Move to the next coordinate
+    
+    ''' ######################### Level 3 ############################### '''
+    def _state_curr_level_3(self):
+        pass
+
+
+    ''' ######################### Level 4 ############################### '''
+    def _state_curr_level_3(self):
+            pass
+    
+    ''' ######################### Event ############################### '''
+    # Check event
     def _check_events(self):
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 self.running = False
-
+    
+    # Update screen
     def _update_screen(self):
         self.screen.fill((0, 0, 0))
 
