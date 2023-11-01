@@ -1,7 +1,7 @@
 import pygame
 
 BLOCK_SIZE = 25
-WIDTH, HEIGHT = 800, 750
+WIDTH, HEIGHT = 800, 450
 
 class Map:  
     def __init__(self, ai_game):
@@ -41,11 +41,19 @@ class Map:
     
     # Draw map
     def draw_map(self):
+        map_width = len(self.world[0]) * BLOCK_SIZE
+        map_height = len(self.world) * BLOCK_SIZE
+
+        map_x = (WIDTH - map_width) // 2
+        map_y = (HEIGHT - map_height) // 2
+
         for y, row in enumerate(self.world):
             for x, block in enumerate(row):
                 image = self.char_to_image.get(block, None)
                 if image:
-                    self.screen.blit(image, (x * BLOCK_SIZE, y * BLOCK_SIZE))
+                    block_x = map_x + x * BLOCK_SIZE
+                    block_y = map_y + y * BLOCK_SIZE
+                    self.screen.blit(image, (block_x, block_y))
 
     # Position Food
     def _pos_food(self):

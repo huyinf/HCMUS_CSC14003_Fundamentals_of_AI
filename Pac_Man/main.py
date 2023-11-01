@@ -9,7 +9,7 @@ class AI_Search_PacMan():
         pygame.init()
 
         # Initialize
-        self.WIDTH, self.HEIGHT = 850, 450
+        self.WIDTH, self.HEIGHT = 800, 450
         self.TITLE = 'Pac - man AI Search'
 
         # Set up environment: size, caption, ... for game app
