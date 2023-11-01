@@ -66,16 +66,16 @@ def get_neighbors(node, adjacency_matrix):
     neighbors = []
 
     # left
-    if x > 0 and adjacency_matrix[x-1][y] != 1:
+    if x > 0 and adjacency_matrix[x-1][y] not in(1, 3):
         neighbors.append((x-1, y))
     # right
-    if x < rows-1 and adjacency_matrix[x+1][y] != 1:
+    if x < rows-1 and adjacency_matrix[x+1][y] not in(1, 3):
         neighbors.append((x+1, y))
     # down
-    if y > 0 and adjacency_matrix[x][y-1] != 1:
+    if y > 0 and adjacency_matrix[x][y-1] not in(1, 3):
         neighbors.append((x, y-1))
     # up
-    if y < cols-1 and adjacency_matrix[x][y+1] != 1:
+    if y < cols-1 and adjacency_matrix[x][y+1] not in(1, 3):
         neighbors.append((x, y+1))
 
     return neighbors
