@@ -64,7 +64,11 @@ def get_neighbors(node, adjacency_matrix):
     
     x, y = node
     neighbors = []
-
+    
+    '''
+        1: Wall
+        3: Ghost
+    '''
     # left
     if x > 0 and adjacency_matrix[x-1][y] not in(1, 3):
         neighbors.append((x-1, y))
