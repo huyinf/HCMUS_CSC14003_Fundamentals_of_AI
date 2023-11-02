@@ -13,6 +13,7 @@ class Ghost(Sprite):
         self.pos_ghost = tup_pos_ghost
         self.image = pygame.transform.scale(pygame.image.load(f'assets/ghost_images/pink.png'), (25, 25))
 
+    # Draw ghost on the screen
     def draw_ghost(self):
         map_width = len(self.world[0]) * BLOCK_SIZE
         map_height = len(self.world) * BLOCK_SIZE
