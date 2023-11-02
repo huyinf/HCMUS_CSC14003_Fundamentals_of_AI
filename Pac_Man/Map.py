@@ -1,7 +1,11 @@
 import pygame
+import os
+
 
 BLOCK_SIZE = 25
 WIDTH, HEIGHT = 800, 450
+current_dir = os.path.dirname(os.path.abspath(__file__))
+
 
 class Map:  
     def __init__(self, ai_game):
@@ -18,17 +22,20 @@ class Map:
         # Identify position ghost
         self.pos_ghost = []
 
+        wall_path = os.path.join(current_dir,'images','wall.png')
+        power_path = os.path.join(current_dir,'images','power.png')
         # Convert char to image
         # 1: wall
         # 2: Goal (Large Food)
         self.char_to_image = {
-            1: pygame.transform.scale(pygame.image.load(f'images/wall.png'), (25,25)),
-            2: pygame.transform.scale(pygame.image.load(f'images/power.png'), (25,25)),
+            1: pygame.transform.scale(pygame.image.load(wall_path), (25,25)),
+            2: pygame.transform.scale(pygame.image.load(power_path), (25,25)),
         }
 
     # Read map level return map and position pacman
     def load_level(self, number1, number2):
-        file = f"map/level-{number1}/map{number2}.txt"  # Use proper string formatting
+        file = os.path.join(current_dir, f"map/level-{number1}/map{number2}.txt")
+        # file = f"map/level-{number1}/map{number2}.txt"  # Use proper string formatting
         with open(file, 'r') as f:
             lines = f.readlines()
 

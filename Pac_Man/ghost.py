@@ -1,5 +1,9 @@
 import pygame
 from pygame.sprite import Sprite
+import os
+
+
+current_dir = os.path.dirname(os.path.abspath(__file__))
 
 BLOCK_SIZE = 25
 WIDTH, HEIGHT = 800, 450
@@ -11,7 +15,8 @@ class Ghost(Sprite):
         self.screen = ai_game.screen
         self.world = ai_game.world
         self.pos_ghost = tup_pos_ghost
-        self.image = pygame.transform.scale(pygame.image.load(f'assets/ghost_images/pink.png'), (25, 25))
+        ghost_path = os.path.join(current_dir,'assets/ghost_images/pink.png')
+        self.image = pygame.transform.scale(pygame.image.load(ghost_path), (25, 25))
 
     def draw_ghost(self):
         map_width = len(self.world[0]) * BLOCK_SIZE

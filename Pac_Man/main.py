@@ -1,8 +1,8 @@
 import pygame
-from Pacman import *
+from pacman import *
 from Map import *
 from Astar import *
-from Ghost import *
+from ghost import *
 from BFS import *
 
 class AI_Search_PacMan():
