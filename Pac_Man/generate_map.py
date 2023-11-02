@@ -146,8 +146,32 @@ def generate_map(level,map_count):
     print([total_cells,bound_wall,inside_wall,ghosts,foods])
     return
 
-generate_map(1,1)
 
+def mapConvert(filename: str) -> tuple[list[list[int]],tuple[int,int]]:
+
+    rows , cols = 0,0
+    matrix = []
+    with open(filename,'r') as file:
+        lines = file.readlines()
+        
+        rows,cols = map(int,lines[0].split())
+        matrix = [[int(cell) for cell in line.split()] for line in lines[1:rows+1]]
+
+        start = tuple(map(int,lines[rows+1].split()))
+
+    return matrix,start
+
+
+# return goal as a tuple
+def findGoal(map: list[list[int]]) -> tuple[int,int]:
+    # goal = 0,0
+
+    rows = len(map)
+    cols = len(map[0])
+    for x in range(rows):
+        for y in range(cols):
+            if map[x][y] == 2:
+                return (x,y)
 
 
 
