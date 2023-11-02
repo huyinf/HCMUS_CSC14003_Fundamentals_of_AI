@@ -28,7 +28,7 @@ class Map:
 
     # Read map level return map and position pacman
     def load_level(self, number1, number2):
-        file = f"level/level-{number1}/map{number2}.txt"  # Use proper string formatting
+        file = f"map/level-{number1}/map{number2}.txt"  # Use proper string formatting
         with open(file, 'r') as f:
             lines = f.readlines()
 

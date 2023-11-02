@@ -3,6 +3,7 @@ from Pacman import *
 from Map import *
 from Astar import *
 from Ghost import *
+from BFS import *
 
 class AI_Search_PacMan():
     def __init__(self):
@@ -18,13 +19,16 @@ class AI_Search_PacMan():
         self.timer = pygame.time.Clock()
 
         # set current map level
-        self.current_map_level = 2
+        self.current_map_level = 1
         self.path_level_1_Astar = None
         self.path_index = 0
 
+        # BFS for level 1 2
+        self.path_level_1_BFS = None
+
     # Function Run Game
     def run_game(self):
-        self.fps = 4
+        self.fps = 5
         self.running = True
         self.path_index = 0  # Initialize the index to the first coordinate in the path
 
@@ -80,16 +84,33 @@ class AI_Search_PacMan():
         self.pacman = Pacman(self, self.pacman_pos[0], self.pacman_pos[1])
 
     ''' ######################### Level 1 ############################### '''
+    # def _state_curr_level_1(self):
+    #     if self.path_level_1_Astar is None:
+    #         # Load map at folder level/level-1/map2.txt
+    #         self._read_map_level(2, 1)
+    #         self.path_level_1_Astar = Astar(self.world, self.pacman_pos, self.food)
+
+    #     # Astar algorithm - level 1, move Pacman follow Astar
+    #     if self.path_level_1_Astar:
+    #         if self.path_index < len(self.path_level_1_Astar):
+    #             tup = self.path_level_1_Astar[self.path_index]
+
+    #             # Update position Pacman and move
+    #             self.pacman.move_pacman(tup)
+    #             self.path_index += 1  # Move to the next coordinate
+    
+    ''' ------------------------- BFS level 1 + 2 ------------------------- '''
     def _state_curr_level_1(self):
         if self.path_level_1_Astar is None:
             # Load map at folder level/level-1/map2.txt
-            self._read_map_level(1, 2)
-            self.path_level_1_Astar = Astar(self.world, self.pacman_pos, self.food)
+            self._read_map_level(2, 1)
+            # self.path_level_1_Astar = Astar(self.world, self.pacman_pos, self.food)
+            self.path_level_1_BFS = bfs(self.world, self.pacman_pos, self.food)
 
         # Astar algorithm - level 1, move Pacman follow Astar
-        if self.path_level_1_Astar:
-            if self.path_index < len(self.path_level_1_Astar):
-                tup = self.path_level_1_Astar[self.path_index]
+        if self.path_level_1_BFS:
+            if self.path_index < len(self.path_level_1_BFS):
+                tup = self.path_level_1_BFS[self.path_index]
 
                 # Update position Pacman and move
                 self.pacman.move_pacman(tup)
