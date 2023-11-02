@@ -14,7 +14,6 @@ class Pacman(Sprite):
         super().__init__()
 
         self.screen = ai_game.screen
-
         self.world = ai_game.world
         self.counter = 0
         self.direction = 0

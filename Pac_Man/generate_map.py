@@ -12,9 +12,8 @@ food='2'
 ghost='3'
 emptyPath='0'
 
-folder_path = "map/"
-
-
+map_dir = os.path.dirname(os.path.abspath(__file__))
+print(map_dir)
 
 def generate_map(level,map_count):
 
@@ -66,7 +65,6 @@ def generate_map(level,map_count):
             x = random.randint(1,rows-1)
             y = random.randint(1,cols-1)
 
-        # map[x][y] = "P"
 
         # for future initialization of ghosts
         # in order to bad case for pacman
@@ -129,9 +127,14 @@ def generate_map(level,map_count):
                 map[r][c] = food
 
 
+        # create level folder if it is not existed
+        level_path = os.path.join(map_dir,f"map/level-{level}")
+        if not os.path.exists(level_path):
+            os.makedirs(level_path)
+
         filename = f"map{m+1}.txt"
 
-
+        # write file content
         with open(filename,'w') as file:
             file.write(str(rows)+" "+str(cols)+'\n')
             for row in map:
@@ -140,11 +143,20 @@ def generate_map(level,map_count):
             
         print(f"{filename} has been writen!")
 
-        file_path = os.path.join(folder_path,filename)
+        # make file path
+        file_path = os.path.join(level_path,filename)
+
+        # remove existed file
+        if os.path.exists(file_path):
+            os.remove(file_path)
+
+        # change created file to new path
         os.rename(filename,file_path)
 
-    print([total_cells,bound_wall,inside_wall,ghosts,foods])
-    return
+    # print([total_cells,bound_wall,inside_wall,ghosts,foods])
+    # return
+
+generate_map(4,5)
 
 
 def mapConvert(filename: str) -> tuple[list[list[int]],tuple[int,int]]:
