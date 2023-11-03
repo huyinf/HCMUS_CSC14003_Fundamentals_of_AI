@@ -156,7 +156,7 @@ def generate_map(level,map_count):
     # print([total_cells,bound_wall,inside_wall,ghosts,foods])
     # return
 
-generate_map(4,5)
+# generate_map(4,5)
 
 
 def mapConvert(filename: str) -> tuple[list[list[int]],tuple[int,int]]:
