@@ -35,7 +35,7 @@ class AI_Search_PacMan_Level_1():
         # Set up path BFS
         self.path_level_1_BFS = None
 
-        # Check index path in algorithm to pacman move to goal
+        # Check index path in algorithm for pacman move to goal
         self.path_index = 0
 
         '''
