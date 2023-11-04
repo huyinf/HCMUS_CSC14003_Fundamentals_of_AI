@@ -32,7 +32,7 @@ class AI_Search_PacMan_Level_4():
         self.reached_goal = False
 
         # Set up path Astar
-        # self.path_level_2_Astar = None
+        self.path_level_4_Astar = None
 
         # Set up path BFS
         # self.path_level_2_BFS = None
@@ -45,7 +45,7 @@ class AI_Search_PacMan_Level_4():
             1: Astar Search (default)
             2: BFS Search
         '''
-        # self.index_alg = 1
+        self.index_alg = 1
     
     ''' ######################### RUN GAME #########################- '''
     def run_game(self):
@@ -87,6 +87,7 @@ class AI_Search_PacMan_Level_4():
         
         # Get position ghost
         ghost_pos = self.map._pos_ghost()
+        
         # Create ghost
         self.ghost = Ghost(self, ghost_pos)
 
@@ -98,7 +99,32 @@ class AI_Search_PacMan_Level_4():
         # Create pacman
         self.pacman = Pacman(self, self.pacman_pos[0], self.pacman_pos[1])
 
-    ''' ######################### FUNCTION LEVEL 2 ############################### '''
+    ''' ######################### FUNCTION LEVEL 4 ############################### '''
+
+    # Using Astar Search algorithm
+    def _Astar_Search_alg(self):
+        if self.path_level_4_Astar is None:
+            # Load map at folder map/level{..}/map{}.txt
+            self._read_map_level(2, 1)
+            self.path_level_4_Astar = Astar(self.world, self.pacman_pos, self.food_pos)
+
+        # Astar algorithm , move Pacman follow path Astar
+        if self.path_level_4_Astar:
+            if self.path_index < len(self.path_level_4_Astar):
+                tup = self.path_level_4_Astar[self.path_index]
+
+                # ghost move to pacman
+                self.ghost.move_ghosts_to_pacman(tup)
+
+                # Update position Pacman and move
+                self.pacman.move_pacman(tup)
+                if tup == self.food_pos:
+                    # Check reached goal if False: continue count score
+                    self.score += 20 # Updated score
+                    self.reached_goal = True
+                else:
+                    self.path_index += 1  # Move to the next coordinate
+                    self.score -= 1 # Updated score
 
 
     ''' ------ Function Main to executive ------ '''
@@ -106,7 +132,8 @@ class AI_Search_PacMan_Level_4():
         Trong level có hàm gì xử lý viết vào đây để chạy main chính
     '''
     def _state_curr_level_4(self):
-        pass
+        self._Astar_Search_alg()
+        
     
     ''' ########################### EVENT ############################### '''
     # Check event
@@ -157,3 +184,4 @@ class AI_Search_PacMan_Level_4():
 if __name__ == '__main__':
     ai = AI_Search_PacMan_Level_4()
     ai.run_game()
+     
