@@ -27,6 +27,15 @@ class Pacman(Sprite):
 
         # R, L, U, D
         self.turns_allowed = [False, False, False, False]
+        #pacman's memory
+        self.food_memory= []
+        self.path_food_memory=[]
+
+        #pacman's sight
+        self.food_sight=[]
+        self.monter_sight=[]
+
+        self.cell=cell
 
     # Draw pacman in screen
     def draw(self):
@@ -42,3 +51,69 @@ class Pacman(Sprite):
 
         self.rect.x = map_x + tup[1] * BLOCK_SIZE
         self.rect.y = map_y + tup[0] * BLOCK_SIZE
+
+    #custom for lv3
+     def emty_memory(self):
+        return len(self.food_memory)==0
+    def monter_in_sight(self):
+        return len(self.monter_sight)!=0
+    def food_in_sight(self):
+        return len(self.food_sight)!=0    
+    
+    def food_spread(self,pacman_pos_old):
+        for path_food in self.path_food_memory:
+            path_food.append(pacman_pos_old)
+    def temp(self,matrix):
+        temp=self.path_food_memory[-1][-1]
+        for path_food in self.path_food_memory:
+            path_food.pop(-1)
+        return temp
+    def remove_path(self):
+       return self.remove(self.path_food_memory)
+    def near_monster(self,food):
+        for monster in self.monter_in_sight:
+            if abs(monster.pos[0]-food.pos[0])+abs(monster[1]-food[1])<=2:
+                return True
+        return False
+    def eyes_sight(self,matrix,sight):
+        #reset memory
+        self.food_sight=[]
+        self.monter_sight=[]
+        for neighbor in matrix[self.cell]:
+            self.recursive_eyessight(matrix,self.cell,neighbor,sight-1)
+        monster_near_food=[]
+        for food_sight in self.food_in_sight:
+            if self.near_monster(food_sight):
+                monster_near_food.append(food_sight)
+        food_cell=[]
+        for i in range(len(self.food_memory)):
+            if self.near_monster(self.food_memory[i]):
+                food_cell.append(i)
+        if len(food_cell) != 0:
+            for index in reversed(food_cell):
+                self.food_memory.pop(index)
+                self.path_food_memory.pop(index)
+        for near_monster in monster_near_food:
+            self.food_sight.remove(near_monster)
+
+        #update memory
+        for food_sight in self.food_in_sight:
+            for index in range(len(self.food_memory)):
+                if food_sight == self.food_memory[index]:
+                    self.food_memory.remove(self.food_memory[index])
+                    self.path_food_memory.remove(self.path_food_memory[index])
+                    break
+            self.food_memory.append(food_sight)
+            self.path_food_memory.append([])
+
+    def recursive_eyessight(self,matrix,parentcell,cell,sight):
+        if sight>=0:
+            if cell.exist_food() and cell not in self.food_in_sight():
+                self.food_in_sight.append(cell)
+
+            if cell.exist_monster() and cell not in self.monter_in_sight():
+                self.monter_in_sight.append(cell)
+
+            for neighbor in matrix[cell]:
+                if neighbor != parentcell:
+                    self.recursive_eyessight(matrix, cell, neighbor, sight - 1)
