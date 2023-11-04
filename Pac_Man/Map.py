@@ -83,3 +83,20 @@ class Map:
     # Position Pacman 
     def _pos_pacman(self):
         return self.pos_pacman
+    # function get cell
+    def init_cells(self):
+      
+        cells = []
+        for y in range(len(self.world)):
+            row = []
+            for x in range(len(self.world[y])):
+                if self.world[y][x] != 1:
+                    if self.world[y][x] == 0:
+                        row.append(Cell((x, y), []))
+                    else:
+                        row.append(Cell((x, y), [CState(self[y][x])]))
+                else:
+                    row.append(None)
+            cells.append(row)
+
+        return cells
