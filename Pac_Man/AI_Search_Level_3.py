@@ -1,13 +1,15 @@
-import pygame
+import sys
+import localSearch
 from Pacman import *
 from Map import *
-from Astar import *
 from Ghost import *
-from BFS import *
+from localSearch import *
 
 '''
     Thay đổi linh hoạt viết hàm hoạt động level 3 vào có đồ họa sẵn rồi
 '''
+
+
 class AI_Search_PacMan_Level_3():
     def __init__(self):
         pygame.init()
@@ -23,7 +25,7 @@ class AI_Search_PacMan_Level_3():
 
         # Initialize time and score
         self.time_elapsed = 0
-        self.score = 0     
+        self.score = 0
 
         ''' Initialize reached goal:
             False --> Not reached goal
@@ -32,22 +34,24 @@ class AI_Search_PacMan_Level_3():
         self.reached_goal = False
 
         # Set up path Astar
-        # self.path_level_2_Astar = None
+        self.path_level_3_LocalSearch = None
 
         # Set up path BFS
         # self.path_level_2_BFS = None
 
         # Check index path in algorithm to pacman move to goal
         # self.path_index = 0
-
+        self.cell=[]
         '''
             Set number to choose algorithm search:
             1: Astar Search (default)
             2: BFS Search
         '''
         # self.index_alg = 1
-    
+
+
     ''' ######################### RUN GAME #########################- '''
+
     def run_game(self):
         self.fps = 5
         self.running = True
@@ -55,21 +59,21 @@ class AI_Search_PacMan_Level_3():
 
         # Start the timer
         start_time = pygame.time.get_ticks()
-            
+
         # Check event
         while self.running:
             # Check events
             self._check_events()
-            
+
             # Check reached goal
             if not self.reached_goal:
                 # Calculate the time elapsed
                 current_time = pygame.time.get_ticks()
-                self.time_elapsed = (current_time - start_time) // 1000 # Convert to seconds
-                
+                self.time_elapsed = (current_time - start_time) // 1000  # Convert to seconds
+
                 # Main Function level 3
                 self._state_curr_level_3()
-                
+
                 # update screen
                 self._update_screen()
 
@@ -77,14 +81,22 @@ class AI_Search_PacMan_Level_3():
             self.timer.tick(self.fps)
 
     ''' ######################### READ MAP ############################### '''
+
+
+
+
     # Read map level at folder level-{number1}, map{number2}.txt
     def _read_map_level(self, number1, number2):
+        """
+        self.world : raw map
+        self.ghost: ghost pos
+        self.pacman_pos
+        """
         # Read map
         self.map = Map(self)
-
         # Read map at folder level/level-{number1}/map{number2}.txt
         self.world = self.map.load_level(number1, number2)
-        
+
         # Get position ghost
         ghost_pos = self.map._pos_ghost()
         # Create ghost
@@ -94,27 +106,111 @@ class AI_Search_PacMan_Level_3():
         self.food_pos = tuple(self.map._pos_food())
 
         # Get position pacman
-        self.pacman_pos = self.map._pos_pacman()
+        self.pacman_pos = self.map._pos_pacman
         # Create pacman
-        self.pacman = Pacman(self, self.pacman_pos[0], self.pacman_pos[1])
+
+        self.pacman=Pacman(self,self.pacman_pos[0],self.pacman_pos[1])
+        self.cell=Map.init_cells(self.world)
 
     ''' ######################### FUNCTION LEVEL 2 ############################### '''
-
 
     ''' ------ Function Main to executive ------ '''
     '''
         Trong level có hàm gì xử lý viết vào đây để chạy main chính
     '''
+
+    def Local_search_alg(self):
+
+        if self.path_level_3_LocalSearch is None:
+            self._read_map_level(2, 1)
+
+            self.path_level_3_LocalSearch = local_search(self.cell, self.world, self.pacman_pos)
+        if self.path_level_3_LocalSearch:
+            if self.path_index < len(self.path_level_3_LocalSearch):
+                tup = self.path_level_3_LocalSearch[self.path_index]
+                # observes all of cells in sight
+                Pacman.eyes_sight(self.world, 3)
+                # pacman saw in past
+                if not Pacman.emty_memory() and not Pacman.food_in_sight():
+                    Pacman.Cells = Pacman.temp(self.world)
+                else:
+                    Pacman.Cells = localSearch.local_search(self.cell, self.world, self.pacman_pos)
+
+                Pacman.Cells.pacmancome()
+                # Update position Pacman and move
+                self.pacman.move_pacman(tup)
+                if tup == self.food_pos:
+                    # Check reached goal if False: continue count score
+                    self.score += 20  # Updated score
+                    self.reached_goal = True
+                else:
+                    self.path_index += 1  # Move to the next coordinate
+                    self.score -= 1  # Updated score
+
+
+                # pacman hide monster
+                for monster in Map._pos_ghost():
+                    if self.pacman==monster:
+                        sys.exit()
+                        break
+                        #game over
+
+
+                #pacman eat food
+                food_list=self.food_pos
+                food_len=len(food_list)
+                for food in self.food_pos:
+                        if food==self.pacman:
+                            food_list.remove(food)
+                if food_len!=len(food_list):
+                    #update score
+                    if tup == self.food_pos:
+                        # Check reached goal if False: continue count score
+                        self.score += 20  # Updated score
+                        self.reached_goal = True
+                    else:
+                        self.path_index += 1  # Move to the next coordinate
+                        self.score -= 1  # Updated score
+
+
+                    for i in range(len(self.food_pos)):
+                        if self.food_pos[i] == self.pacman_pos:
+                            self.food_pos.remove(self.food_pos[i])
+                            Pacman.remove_path(self)
+                            break
+                # Monsters move around.
+                for monster in monster_list:
+
+
+                        next_cell = monster.initial_cell
+                        if self.ghost == self.ghost.initial_cell:
+                            around_cell = Ghost.get_around(self.world)
+                            next_cell = random.randint(0, len(around_cell) - 1)
+                            next_cell = around_cell[next_cell]
+                        monster.cell = next_cell
+
+                        monster.move(monster.cell.pos)
+                        Ghost.move_ghost(self.ghost)
+                if len(self.food_pos)==0:
+                    print("WIN")
+                    sys.exit()
+
+
+
+
+
+    #############################################################################
     def _state_curr_level_3(self):
-        pass
-    
+        self.Local_search_alg()
+
     ''' ########################### EVENT ############################### '''
+
     # Check event
     def _check_events(self):
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 self.running = False
-    
+
     # Update screen
     def _update_screen(self):
         self.screen.fill((0, 0, 0))
@@ -153,6 +249,8 @@ class AI_Search_PacMan_Level_3():
             text_rect = win_text.get_rect()
             text_rect.center = (self.WIDTH // 2, 40)  # Center the text
             self.screen.blit(win_text, text_rect)
+
+
 
 if __name__ == '__main__':
     ai = AI_Search_PacMan_Level_3()
