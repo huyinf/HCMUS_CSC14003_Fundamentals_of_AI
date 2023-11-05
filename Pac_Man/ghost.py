@@ -25,6 +25,7 @@ class Ghost(Sprite):
         for pos in self.pos_ghost:
             self.screen.blit(self.image, (map_x + pos[1] * BLOCK_SIZE, map_y + pos[0] * BLOCK_SIZE))
 
+
     # 
     def move_ghosts_to_pacman(self, pacman_pos):
         for i in range(len(self.pos_ghost)):

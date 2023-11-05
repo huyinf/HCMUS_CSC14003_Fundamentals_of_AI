@@ -1,9 +1,9 @@
 import pygame
 import numpy as np
-from pacman import *
+from Pacman import *
 from Map import *
 from Astar import *
-from ghost import *
+from Ghost import *
 from BFS import *
 
 class AI_Search_PacMan_Level_1():

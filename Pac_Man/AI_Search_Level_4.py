@@ -1,6 +1,6 @@
 import pygame
 from Pacman import *
-from Map import *
+from Map34 import *
 from Astar import *
 from Ghost import *
 from BFS import *
@@ -38,7 +38,7 @@ class AI_Search_PacMan_Level_4():
         # self.path_level_2_BFS = None
 
         # Check index path in algorithm to pacman move to goal
-        # self.path_index = 0
+        self.path_index = 0
 
         '''
             Set number to choose algorithm search:
@@ -92,7 +92,16 @@ class AI_Search_PacMan_Level_4():
         self.ghost = Ghost(self, ghost_pos)
 
         # Get position food
-        self.food_pos = tuple(self.map._pos_food())
+        self.food_pos = self.map._pos_food()
+        '''
+            Kiem tra pac man da di an thuc an tai vi tri (x,y) chua:
+                False: Chua an
+                True: An roi
+        '''
+        self._check_pass_food = {} 
+        for pos in self.food_pos:
+            self._check_pass_food[pos] = False
+
 
         # Get position pacman
         self.pacman_pos = self.map._pos_pacman()
@@ -101,26 +110,32 @@ class AI_Search_PacMan_Level_4():
 
     ''' ######################### FUNCTION LEVEL 4 ############################### '''
 
-    # Using Astar Search algorithm
-    def _Astar_Search_alg(self):
+    # Using Minimax Search algorithm
+    def _MiniMax_Search_alg(self):
         if self.path_level_4_Astar is None:
             # Load map at folder map/level{..}/map{}.txt
-            self._read_map_level(2, 1)
-            self.path_level_4_Astar = Astar(self.world, self.pacman_pos, self.food_pos)
+            self._read_map_level(4, 1)
+            self.path_level_4_Astar = Astar(self.world, self.pacman_pos, self.food_pos[-1])
 
         # Astar algorithm , move Pacman follow path Astar
         if self.path_level_4_Astar:
             if self.path_index < len(self.path_level_4_Astar):
                 tup = self.path_level_4_Astar[self.path_index]
 
-                # ghost move to pacman
-                self.ghost.move_ghosts_to_pacman(tup)
-
                 # Update position Pacman and move
                 self.pacman.move_pacman(tup)
+
+                if self._check_pass_food[tup] == False:
+                    self.score += 21
+                    # Check food is passed
+                    self._check_pass_food[tup] = True
+                    self.world[tup[0]][tup[1]] = 0 # An biet mat
+
+                # ghost move to pacman
+                # self.ghost.move_ghosts_to_pacman(tup)
+
                 if tup == self.food_pos:
                     # Check reached goal if False: continue count score
-                    self.score += 20 # Updated score
                     self.reached_goal = True
                 else:
                     self.path_index += 1  # Move to the next coordinate
@@ -132,7 +147,7 @@ class AI_Search_PacMan_Level_4():
         Trong level có hàm gì xử lý viết vào đây để chạy main chính
     '''
     def _state_curr_level_4(self):
-        self._Astar_Search_alg()
+        self._MiniMax_Search_alg()
         
     
     ''' ########################### EVENT ############################### '''
@@ -184,4 +199,3 @@ class AI_Search_PacMan_Level_4():
 if __name__ == '__main__':
     ai = AI_Search_PacMan_Level_4()
     ai.run_game()
-     

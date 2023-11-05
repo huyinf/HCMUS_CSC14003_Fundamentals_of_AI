@@ -42,3 +42,15 @@ class Pacman(Sprite):
 
         self.rect.x = map_x + tup[1] * BLOCK_SIZE
         self.rect.y = map_y + tup[0] * BLOCK_SIZE
+
+    def get_possible_moves(self):
+        moves = []
+        if self.rect.x > 0 and self.game.world[self.rect.x - 1][self.rect.y] != 1:
+            moves.append((self.rect.x - 1, self.rect.y))  # Move left
+        if self.rect.x < len(self.game.world) - 1 and self.game.world[self.rect.x + 1][self.rect.y] != 1:
+            moves.append((self.rect.x + 1, self.y))  # Move right
+        if self.rect.y > 0 and self.game.world[self.rect.x][self.rect.y - 1] != 1:
+            moves.append((self.rect.x, self.rect.y - 1))  # Move up
+        if self.rect.y < len(self.game.world[0]) - 1 and self.game.world[self.rect.x][self.rect.y + 1] != 1:
+            moves.append((self.rect.x, self.rect.y + 1))  # Move down
+        return moves
