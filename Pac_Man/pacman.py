@@ -53,7 +53,7 @@ class Pacman(Sprite):
         self.rect.y = map_y + tup[0] * BLOCK_SIZE
 
     #custom for lv3
-    #  def emty_memory(self):
+    # def emty_memory(self):
     #     return len(self.food_memory)==0
     # def monter_in_sight(self):
     #     return len(self.monter_sight)!=0
