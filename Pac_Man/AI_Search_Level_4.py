@@ -4,6 +4,8 @@ from Map34 import *
 from Astar import *
 from Ghost import *
 from BFS import *
+from Minimax_Alg import *
+import copy
 
 '''
     Thay đổi linh hoạt viết hàm hoạt động level 3 vào có đồ họa sẵn rồi
@@ -32,7 +34,7 @@ class AI_Search_PacMan_Level_4():
         self.reached_goal = False
 
         # Set up path Astar
-        self.path_level_4_Astar = None
+        self.path_level_4_minimax = None
 
         # Set up path BFS
         # self.path_level_2_BFS = None
@@ -46,7 +48,14 @@ class AI_Search_PacMan_Level_4():
             2: BFS Search
         '''
         self.index_alg = 1
-    
+
+        self.deep = 0
+
+        self._check_read_map = False
+
+        # Check ghost
+        self._check_ghost = False
+        self._check_pacman = False
     ''' ######################### RUN GAME #########################- '''
     def run_game(self):
         self.fps = 5
@@ -55,12 +64,14 @@ class AI_Search_PacMan_Level_4():
 
         # Start the timer
         start_time = pygame.time.get_ticks()
-            
+        
+        # Load map at folder map/level{..}/map{}.txt
+        self._read_map_level(4, 1)
+
         # Check event
         while self.running:
             # Check events
             self._check_events()
-            
             # Check reached goal
             if not self.reached_goal:
                 # Calculate the time elapsed
@@ -77,7 +88,7 @@ class AI_Search_PacMan_Level_4():
             self.timer.tick(self.fps)
 
     ''' ######################### READ MAP ############################### '''
-    # Read map level at folder level-{number1}, map{number2}.txt
+    # Read map level at folder level-{number1}, map{number2}..
     def _read_map_level(self, number1, number2):
         # Read map
         self.map = Map(self)
@@ -86,10 +97,10 @@ class AI_Search_PacMan_Level_4():
         self.world = self.map.load_level(number1, number2)
         
         # Get position ghost
-        ghost_pos = self.map._pos_ghost()
+        self.ghost_pos = self.map._pos_ghost()
         
         # Create ghost
-        self.ghost = Ghost(self, ghost_pos)
+        self.ghost = Ghost(self, self.ghost_pos)
 
         # Get position food
         self.food_pos = self.map._pos_food()
@@ -110,37 +121,28 @@ class AI_Search_PacMan_Level_4():
 
     ''' ######################### FUNCTION LEVEL 4 ############################### '''
 
+
+
+
     # Using Minimax Search algorithm
     def _MiniMax_Search_alg(self):
-        if self.path_level_4_Astar is None:
-            # Load map at folder map/level{..}/map{}.txt
-            self._read_map_level(4, 1)
-            self.path_level_4_Astar = Astar(self.world, self.pacman_pos, self.food_pos[-1])
+        map = copy.deepcopy(self.world)
+        food_check = copy.deepcopy(self.food_pos)
+        best_move_pacman = best_move(map, self.pacman.get_possition_pacman(), copy.deepcopy(self.ghost_pos),food_check)
+        if self.world[best_move_pacman[0]][best_move_pacman[1]] == 2:
+            self.world[best_move_pacman[0]][best_move_pacman[1]] = 0
+            self.food_pos = [item for item in self.food_pos if item != (best_move_pacman[0],best_move_pacman[1])]
+        self.pacman.move_pacman(best_move_pacman)
+        # Check vi tri ban dau cua ghost
+        if self._check_ghost == False:
+            for y, row in enumerate(self.world):
+                for x, block in enumerate(row):
+                    if self.world[y][x] == 3:
+                        self.world[y][x] = 0
 
-        # Astar algorithm , move Pacman follow path Astar
-        if self.path_level_4_Astar:
-            if self.path_index < len(self.path_level_4_Astar):
-                tup = self.path_level_4_Astar[self.path_index]
+            self._check_ghost = True
 
-                # Update position Pacman and move
-                self.pacman.move_pacman(tup)
-
-                if self._check_pass_food[tup] == False:
-                    self.score += 21
-                    # Check food is passed
-                    self._check_pass_food[tup] = True
-                    self.world[tup[0]][tup[1]] = 0 # An biet mat
-
-                # ghost move to pacman
-                # self.ghost.move_ghosts_to_pacman(tup)
-
-                if tup == self.food_pos:
-                    # Check reached goal if False: continue count score
-                    self.reached_goal = True
-                else:
-                    self.path_index += 1  # Move to the next coordinate
-                    self.score -= 1 # Updated score
-
+        self.ghost.move_ghosts_to_pacman(best_move_pacman)
 
     ''' ------ Function Main to executive ------ '''
     '''

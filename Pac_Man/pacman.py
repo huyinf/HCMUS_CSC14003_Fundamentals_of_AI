@@ -22,8 +22,15 @@ class Pacman(Sprite):
         self.pacman_images = pygame.transform.scale(pygame.image.load(player_1_path), (25, 25))
         
         self.rect = self.pacman_images.get_rect()
-        self.rect.x = pacmanx * BLOCK_SIZE
-        self.rect.y = pacmany * BLOCK_SIZE
+
+        map_width = len(self.world[0]) * BLOCK_SIZE
+        map_height = len(self.world) * BLOCK_SIZE
+
+        map_x = (WIDTH - map_width) // 2
+        map_y = (HEIGHT - map_height) // 2
+
+        self.rect.x = map_x + pacmany * BLOCK_SIZE
+        self.rect.y = map_y + pacmanx * BLOCK_SIZE
 
         # R, L, U, D
         self.turns_allowed = [False, False, False, False]
@@ -43,14 +50,15 @@ class Pacman(Sprite):
         self.rect.x = map_x + tup[1] * BLOCK_SIZE
         self.rect.y = map_y + tup[0] * BLOCK_SIZE
 
-    def get_possible_moves(self):
-        moves = []
-        if self.rect.x > 0 and self.game.world[self.rect.x - 1][self.rect.y] != 1:
-            moves.append((self.rect.x - 1, self.rect.y))  # Move left
-        if self.rect.x < len(self.game.world) - 1 and self.game.world[self.rect.x + 1][self.rect.y] != 1:
-            moves.append((self.rect.x + 1, self.y))  # Move right
-        if self.rect.y > 0 and self.game.world[self.rect.x][self.rect.y - 1] != 1:
-            moves.append((self.rect.x, self.rect.y - 1))  # Move up
-        if self.rect.y < len(self.game.world[0]) - 1 and self.game.world[self.rect.x][self.rect.y + 1] != 1:
-            moves.append((self.rect.x, self.rect.y + 1))  # Move down
-        return moves
+    # Test
+    def get_possition_pacman(self):
+        map_width = len(self.world[0]) * BLOCK_SIZE
+        map_height = len(self.world) * BLOCK_SIZE
+
+        map_x = (WIDTH - map_width) // 2
+        map_y = (HEIGHT - map_height) // 2
+
+        curr_y = (self.rect.x - map_x) // BLOCK_SIZE
+        curr_x = (self.rect.y - map_y) // BLOCK_SIZE
+
+        return (curr_x, curr_y)

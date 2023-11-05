@@ -3,6 +3,7 @@ import os
 from main import *
 from AI_Search_Level_1 import *
 from AI_Search_Level_2 import *
+from AI_Search_Level_4 import *
 
 class Interface_Graphic:
     def __init__(self):
@@ -122,13 +123,17 @@ class Interface_Graphic:
                     elif self.current_screen == "level_select":
                         # Search Level 1 Pacman
                         if self.level1_buttons_rects.collidepoint(event.pos):
-                                self.ai_search_pacman1 = AI_Search_PacMan_Level_1()
-                                self.ai_search_pacman1.run_game()
+                            self.ai_search_pacman1 = AI_Search_PacMan_Level_1()
+                            self.ai_search_pacman1.run_game()
                         # Search Level 2 Pacman
                         if self.level2_buttons_rects.collidepoint(event.pos):
-                                self.ai_search_pacman2 = AI_Search_PacMan_Level_2()
-                                self.ai_search_pacman2.run_game()
-                
+                            self.ai_search_pacman2 = AI_Search_PacMan_Level_2()
+                            self.ai_search_pacman2.run_game()
+
+                        # Search level 4 Pacman
+                        if self.level4_buttons_rects.collidepoint(event.pos):
+                            self.ai_search_pacman4 = AI_Search_PacMan_Level_4()
+                            self.ai_search_pacman4.run_game()
             # Draw background on the screen                    
             self.screen.blit(self.background_image, (0, 0))
             
