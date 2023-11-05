@@ -10,7 +10,7 @@ WIDTH, HEIGHT = 800, 450
 
 # Create pacman
 class Pacman(Sprite):
-    def __init__(self, ai_game, pacmanx, pacmany):
+    def __init__(self, ai_game, pacmanx, pacmany,cell=None):
         super().__init__()
 
         self.screen = ai_game.screen
