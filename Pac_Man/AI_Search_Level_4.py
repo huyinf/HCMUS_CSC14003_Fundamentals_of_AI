@@ -121,9 +121,6 @@ class AI_Search_PacMan_Level_4():
 
     ''' ######################### FUNCTION LEVEL 4 ############################### '''
 
-
-
-
     # Using Minimax Search algorithm
     def _MiniMax_Search_alg(self):
         map = copy.deepcopy(self.world)
