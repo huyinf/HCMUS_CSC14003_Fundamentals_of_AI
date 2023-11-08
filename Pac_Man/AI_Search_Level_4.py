@@ -15,7 +15,7 @@ class AI_Search_PacMan_Level_4():
         pygame.init()
 
         # Initialize
-        self.WIDTH, self.HEIGHT = 800, 450
+        self.WIDTH, self.HEIGHT = 1000, 562
         self.TITLE = 'Pac - man AI Search'
 
         # Set up environment: size, caption, ... for game app
@@ -56,9 +56,13 @@ class AI_Search_PacMan_Level_4():
         # Check ghost
         self._check_ghost = False
         self._check_pacman = False
+
+        # Check lose
+        self._check_lose = False
+
     ''' ######################### RUN GAME #########################- '''
     def run_game(self):
-        self.fps = 5
+        self.fps = 8
         self.running = True
         self.path_index = 0  # Initialize the index to the first coordinate in the path
 
@@ -66,7 +70,7 @@ class AI_Search_PacMan_Level_4():
         start_time = pygame.time.get_ticks()
         
         # Load map at folder map/level{..}/map{}.txt
-        self._read_map_level(4, 1)
+        self._read_map_level(4, 5)
 
         # Check event
         while self.running:
@@ -123,23 +127,46 @@ class AI_Search_PacMan_Level_4():
 
     # Using Minimax Search algorithm
     def _MiniMax_Search_alg(self):
-        map = copy.deepcopy(self.world)
-        food_check = copy.deepcopy(self.food_pos)
-        best_move_pacman = best_move(map, self.pacman.get_possition_pacman(), copy.deepcopy(self.ghost_pos),food_check)
-        if self.world[best_move_pacman[0]][best_move_pacman[1]] == 2:
-            self.world[best_move_pacman[0]][best_move_pacman[1]] = 0
-            self.food_pos = [item for item in self.food_pos if item != (best_move_pacman[0],best_move_pacman[1])]
-        self.pacman.move_pacman(best_move_pacman)
-        # Check vi tri ban dau cua ghost
-        if self._check_ghost == False:
-            for y, row in enumerate(self.world):
-                for x, block in enumerate(row):
-                    if self.world[y][x] == 3:
-                        self.world[y][x] = 0
+        if not self._check_lose:
+            # Copy map
+            map = copy.deepcopy(self.world)
 
-            self._check_ghost = True
+            # Kiem tra an het thuc an chua
+            if self.food_pos:
+                # Copy position food
+                food_check = copy.deepcopy(self.food_pos)
 
-        self.ghost.move_ghosts_to_pacman(best_move_pacman)
+                # Find best move pacman
+                best_move_pacman = best_move(map, self.pacman.get_possition_pacman(), copy.deepcopy(self.ghost_pos),food_check)
+                
+                # Cap nhat lai ban do sau khi pac an thuc an
+                if self.world[best_move_pacman[0]][best_move_pacman[1]] == 2:
+                    self.score += 20
+                    self.world[best_move_pacman[0]][best_move_pacman[1]] = 0
+                    self.food_pos = [item for item in self.food_pos if item != (best_move_pacman[0],best_move_pacman[1])]
+                else:
+                    self.score -= 1
+                
+                # Di chuyen pacman
+                self.pacman.move_pacman(best_move_pacman)
+
+                # Check vi tri ban dau cua ghost
+                if self._check_ghost == False:
+                    for y, row in enumerate(self.world):
+                        for x, block in enumerate(row):
+                            if self.world[y][x] == 3:
+                                self.world[y][x] = 0
+
+                    self._check_ghost = True
+
+                # Di chuyen ghost toi pacman
+                self.ghost.move_ghosts_to_pacman(best_move_pacman)
+
+                if best_move_pacman in self.ghost.pos_ghost:
+                    self._check_lose = True
+                    self.score -= 20
+            else:
+                self.reached_goal = True            
 
     ''' ------ Function Main to executive ------ '''
     '''
@@ -169,13 +196,6 @@ class AI_Search_PacMan_Level_4():
         # Draw Ghost
         self.ghost.draw_ghost()
 
-        '''
-            Check reached goal:
-                if True: 
-                    Stop count time and score
-                else: 
-                    Continue count time and score
-        '''
         # Draw time and score
         font = pygame.font.Font(None, 36)
         time_text = font.render(f"TIME: {self.time_elapsed}", True, (255, 255, 255))
@@ -183,6 +203,14 @@ class AI_Search_PacMan_Level_4():
 
         # Position the text on the screen
         self.screen.blit(time_text, (10, 10))
+
+        '''
+            Check reached goal:
+                if True: 
+                    Stop count time and score
+                else: 
+                    Continue count time and score
+        '''
         self.screen.blit(score_text, (10, 50))
 
         # Display "YOU WIN" in the center of the screen
@@ -191,6 +219,16 @@ class AI_Search_PacMan_Level_4():
             font = pygame.font.Font(None, 72)
             font.set_bold(True)
             win_text = font.render("YOU WIN !!!", True, (255, 0, 0))
+            text_rect = win_text.get_rect()
+            text_rect.center = (self.WIDTH // 2, 40)  # Center the text
+            self.screen.blit(win_text, text_rect)
+
+        # Display "YOU LOSE in the center of the screen
+        if self._check_lose:
+            # Set font and display "YOU LOSE"
+            font = pygame.font.Font(None, 72)
+            font.set_bold(True)
+            win_text = font.render("YOU LOSE !!!", True, (255, 0, 0))
             text_rect = win_text.get_rect()
             text_rect.center = (self.WIDTH // 2, 40)  # Center the text
             self.screen.blit(win_text, text_rect)

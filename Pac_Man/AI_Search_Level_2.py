@@ -1,16 +1,20 @@
 import pygame
+import numpy as np
 from Pacman import *
 from Map import *
 from Astar import *
 from Ghost import *
 from BFS import *
+from setting import *
+from BFS2 import *
+from dfs import *
 
 class AI_Search_PacMan_Level_2():
     def __init__(self):
         pygame.init()
 
         # Initialize
-        self.WIDTH, self.HEIGHT = 800, 450
+        self.WIDTH, self.HEIGHT = 1000, 562
         self.TITLE = 'Pac - man AI Search'
 
         # Set up environment: size, caption, ... for game app
@@ -28,13 +32,10 @@ class AI_Search_PacMan_Level_2():
         '''
         self.reached_goal = False
 
-        # Set up path Astar
-        self.path_level_2_Astar = None
+        # Set up path 
+        self.path_level_2 = None
 
-        # Set up path BFS
-        self.path_level_2_BFS = None
-
-        # Check index path in algorithm to pacman move to goal
+        # Check index path in algorithm for pacman move to goal
         self.path_index = 0
 
         '''
@@ -42,11 +43,11 @@ class AI_Search_PacMan_Level_2():
             1: Astar Search (default)
             2: BFS Search
         '''
-        self.index_alg = 1
+        self.index_alg = Setting().choose_algorithm
     
     ''' ######################### RUN GAME #########################- '''
     def run_game(self):
-        self.fps = 5
+        self.fps = 8
         self.running = True
         self.path_index = 0  # Initialize the index to the first coordinate in the path
 
@@ -64,7 +65,7 @@ class AI_Search_PacMan_Level_2():
                 current_time = pygame.time.get_ticks()
                 self.time_elapsed = (current_time - start_time) // 1000 # Convert to seconds
                 
-                # Main Function level 2
+                # Main Function level 1
                 self._state_curr_level_2()
                 
                 # update screen
@@ -95,19 +96,19 @@ class AI_Search_PacMan_Level_2():
         # Create pacman
         self.pacman = Pacman(self, self.pacman_pos[0], self.pacman_pos[1])
 
-    ''' ######################### FUNCTION LEVEL 2 ############################### '''
+    ''' ######################### FUNCTION LEVEL 1 ############################### '''
 
     # Using Astar Search algorithm
     def _Astar_Search_alg(self):
-        if self.path_level_2_Astar is None:
+        if self.path_level_2 is None:
             # Load map at folder map/level{..}/map{}.txt
             self._read_map_level(2, 1)
-            self.path_level_2_Astar = Astar(self.world, self.pacman_pos, self.food_pos)
+            self.path_level_2 = Astar(self.world, self.pacman_pos, self.food_pos)
 
-        # Astar algorithm , move Pacman follow path Astar
-        if self.path_level_2_Astar:
-            if self.path_index < len(self.path_level_2_Astar):
-                tup = self.path_level_2_Astar[self.path_index]
+        # Astar algorithm - level 1, move Pacman follow path Astar
+        if self.path_level_2:
+            if self.path_index < len(self.path_level_2):
+                tup = self.path_level_2[self.path_index]
 
                 # Update position Pacman and move
                 self.pacman.move_pacman(tup)
@@ -119,21 +120,67 @@ class AI_Search_PacMan_Level_2():
                     self.path_index += 1  # Move to the next coordinate
                     self.score -= 1 # Updated score
 
-    # Using BFS Search algorithm
+    # -----------------------------------------------------
+    # Using best first search implemnetation Search algorithm
     def _BFS_Search_alg(self):
-        if self.path_level_2_Astar is None:
+        if self.self.path_level_2 is None:
             # Load map at folder map/level-{}/map{}.txt
             self._read_map_level(1, 2)
-            # self.path_level_2_Astar = Astar(self.world, self.pacman_pos, self.food_pos)
-            self.path_level_2_BFS = bfs(self.world, self.pacman_pos, self.food_pos)
+            # self.path_level_2 = Astar(self.world, self.pacman_pos, self.food_pos)
+            self.self.path_level_2 = bfs(self.world, self.pacman_pos, self.food_pos)
 
         # Astar algorithm - level 1, move Pacman follow Astar
-        if self.path_level_2_BFS:
-            if self.path_index < len(self.path_level_2_BFS):
-                tup = self.path_level_2_BFS[self.path_index]
+        if self.self.path_level_2:
+            if self.path_index < len(self.self.path_level_2_BFS):
+                tup = self.self.path_level_2[self.path_index]
 
                 # Update position Pacman and move
                 self.pacman.move_pacman(tup)
+                if tup == self.food_pos:
+                    # Check reached goal if False: continue count score
+                    self.score += 20 # Updated score
+                    self.reached_goal = True
+                else:
+                    self.path_index += 1  # Move to the next coordinate
+                    self.score -= 1 # Updated score
+    # -----------------------------------------------------
+    # breadth-first search implementation
+    # Using best first search implemnetation Search algorithm
+    def _BFS2_Search_alg(self):
+        if self.path_level_2 is None:
+            # Load map at folder map/level-{}/map{}.txt
+            self._read_map_level(1, 2)
+            # self.path_level_2 = Astar(self.world, self.pacman_pos, self.food_pos)
+            self.path_level_2= bfs2(self.world, self.pacman_pos, self.food_pos)
+
+        # Astar algorithm - level 1, move Pacman follow Astar
+        if self.self.path_level_2_BFS:
+            if self.path_index < len(self.self.path_level):
+                tup = self.self.path_level_2[self.path_index]
+
+                # Update position Pacman and move
+                self.pacman.move_pacman(tup)
+                if tup == self.food_pos:
+                    # Check reached goal if False: continue count score
+                    self.score += 20 # Updated score
+                    self.reached_goal = True
+                else:
+                    self.path_index += 1  # Move to the next coordinate
+                    self.score -= 1 # Updated score
+    # -----------------------------------------------------
+    # breadth-first search implementation
+    # Using best first search implemnetation Search algorithm
+    def _DFS_Search_alg(self):
+        if self.path_level_2 is None:
+            # Load map at folder map/level-{}/map{}.txt
+            self._read_map_level(2, 1)
+            # self.path_level_2 = Astar(self.world, self.pacman_pos, self.food_pos)
+            self.path_level_2= dfs(self.world, self.pacman_pos, self.food_pos)
+
+        # Astar algorithm - level 1, move Pacman follow Astar
+        if self.path_level_2:
+            if self.path_index < len(self.path_level_2):
+                tup = self.path_level_2[self.path_index]
 
                 # Update position Pacman and move
                 self.pacman.move_pacman(tup)
@@ -148,9 +195,14 @@ class AI_Search_PacMan_Level_2():
     ''' ------ Function Main to executive ------ '''
     def _state_curr_level_2(self):
         if self.index_alg == 1:
-            self._Astar_Search_alg()
-        elif self.index_alg == 2:
             self._BFS_Search_alg()
+        elif self.index_alg == 2:
+            self._BFS2_Search_alg()
+        elif self.index_alg == 3:
+            self._Astar_Search_alg()
+        elif self.index_alg == 4:
+            self._DFS_Search_alg()
+            
     
     ''' ########################### EVENT ############################### '''
     # Check event
@@ -186,7 +238,7 @@ class AI_Search_PacMan_Level_2():
 
         # Position the text on the screen
         self.screen.blit(time_text, (10, 10))
-        self.screen.blit(score_text, (10, 50))
+        self.screen.blit(score_text, (10, 40))
 
         # Display "YOU WIN" in the center of the screen
         if self.reached_goal:

@@ -3,7 +3,7 @@ import os
 
 
 BLOCK_SIZE = 25
-WIDTH, HEIGHT = 800, 450
+WIDTH, HEIGHT = 1000, 562
 current_dir = os.path.dirname(os.path.abspath(__file__))
 
 
@@ -23,7 +23,7 @@ class Map:
         self.pos_ghost = []
 
         self.wall_path = os.path.join(current_dir,'images','wall.png')
-        self.power_path = os.path.join(current_dir,'images','power.png')
+        self.power_path = os.path.join(current_dir,'images','food.png')
         # Convert char to image
         # 1: wall
         # 2: Goal (Large Food)

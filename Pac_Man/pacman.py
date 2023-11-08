@@ -6,7 +6,7 @@ current_dir = os.path.dirname(os.path.abspath(__file__))
 
 
 BLOCK_SIZE = 25
-WIDTH, HEIGHT = 800, 450
+WIDTH, HEIGHT = 1000, 562
 
 # Create pacman
 class Pacman(Sprite):
@@ -18,7 +18,7 @@ class Pacman(Sprite):
         self.counter = 0
         self.direction = 0
         
-        player_1_path = os.path.join(current_dir,'assets/player_images/1.png')
+        player_1_path = os.path.join(current_dir,'images/pacman.png')
         self.pacman_images = pygame.transform.scale(pygame.image.load(player_1_path), (25, 25))
         
         self.rect = self.pacman_images.get_rect()

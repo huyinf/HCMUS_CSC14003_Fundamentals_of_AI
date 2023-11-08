@@ -4,7 +4,7 @@ breadth-first search implementation
 
 import heapq
 
-def bfs(matrix,start,goal):
+def bfs2(matrix,start,goal):
 
     # get map size
     rows = len(matrix)

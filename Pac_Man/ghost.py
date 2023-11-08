@@ -3,7 +3,7 @@ from pygame.sprite import Sprite
 from Astar import *
 
 BLOCK_SIZE = 25
-WIDTH, HEIGHT = 800, 450
+WIDTH, HEIGHT = 1000, 562
 
 class Ghost(Sprite):
     def __init__(self, ai_game, tup_pos_ghost):
@@ -12,7 +12,7 @@ class Ghost(Sprite):
         self.screen = ai_game.screen
         self.world = ai_game.world
         self.pos_ghost = tup_pos_ghost
-        self.image = pygame.transform.scale(pygame.image.load(f'assets/ghost_images/pink.png'), (25, 25))
+        self.image = pygame.transform.scale(pygame.image.load(f'images/ghost.png'), (25, 25))
 
     # Draw ghost on the screen
     def draw_ghost(self):
