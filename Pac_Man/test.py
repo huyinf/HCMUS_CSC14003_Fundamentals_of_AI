@@ -1,73 +1,256 @@
-import random
-import math
-import copy
+import pygame
+import numpy as np
+from Pacman import *
+from Map import *
+from Astar import *
+from Ghost import *
+from BFS import *
+from setting import *
+from BFS2 import *
+from dfs import *
 
-# Vị trí ban đầu của Pac-Man và quái vật
-pacman_position = (1, 1)
-ghost_position = (2, 2)
+class AI_Search_PacMan_Level_1():
+    def __init__(self):
+        pygame.init()
 
-# Hàm tính khoang cách giữa hai điểm
-def euclidean_distance(p1, p2):
-    return math.sqrt((p1[0]-p2[0])**2 + (p1[1]-p2[1])**2)
+        # Initialize
+        self.WIDTH, self.HEIGHT = 1000, 562
+        self.TITLE = 'Pac - man AI Search'
 
-# Local search
-def local_search(map, pos_pacman, score, deep, upp_list, down_list, right_list, left_list):
-    # Kiem tra tai vi tri (x,y) la thuc an, hay o trong
-    if map[pos_pacman[0]][pos_pacman[1]] == 0:
-        score -= 1
-    elif map[pos_pacman[0]][pos_pacman[1]] == 2:
-        score += 50
-    elif map[pos_pacman[0]][pos_pacman[1]] == 3:
-        score -= 999
+        # Set up environment: size, caption, ... for game app
+        self.screen = pygame.display.set_mode((self.WIDTH, self.HEIGHT))
+        pygame.display.set_caption(self.TITLE)
+        self.timer = pygame.time.Clock()
 
-    if deep == 3:
-        return score
+        # Initialize time and score
+        self.time_elapsed = 0
+        self.score = 0     
+
+        ''' Initialize reached goal:
+            False --> Not reached goal
+            True  --> reached goal
+        '''
+        self.reached_goal = False
+
+        # Set up path 
+        self.path_level_1 = None
+
+        # Check index path in algorithm for pacman move to goal
+        self.path_index = 0
+
+        '''
+            Set number to choose algorithm search:
+            1: Astar Search (default)
+            2: BFS Search
+        '''
+        self.index_alg = Setting().choose_algorithm
     
-    directions = [(pos_pacman[0] - 1, pos_pacman[1]), (pos_pacman[0] + 1, pos_pacman[1]), 
-                (pos_pacman[0], pos_pacman[1] - 1), (pos_pacman[0], pos_pacman[1] + 1)]
-    
-    for direction in directions:
-        if map[direction[0]][direction[1]] != 1:
-            new_score = local_search(copy.deepcopy(map), direction, copy.deepcopy(score), deep + 1, upp_list, down_list, right_list, left_list)
-            if direction == directions[0]:
-                upp_list[deep] = new_score
-            elif direction == directions[1]:
-                down_list[deep] = new_score
-            elif direction == directions[2]:
-                left_list[deep] = new_score
-            elif direction == directions[3]:
-                right_list[deep] = new_score
+    ''' ######################### RUN GAME #########################- '''
+    def run_game(self):
+        self.fps = 8
+        self.running = True
+        self.path_index = 0  # Initialize the index to the first coordinate in the path
 
-    max_score = max(upp_list[deep], down_list[deep], left_list[deep], right_list[deep])
-    return max_score
+        # Start the timer
+        start_time = pygame.time.get_ticks()
+        
+        self._read_map_level(1, 5)
 
-# Tim duong di tot nhat tra ve mot toa do (x,y)
-def find_best_move(map, pos_pacman):
-    directions = [(pos_pacman[0] - 1, pos_pacman[1]), (pos_pacman[0] + 1, pos_pacman[1]), 
-                (pos_pacman[0], pos_pacman[1] - 1), (pos_pacman[0], pos_pacman[1] + 1)]
-    
-    scores = [-9999] * 4
-    for i, direction in enumerate(directions):
-        if map[direction[0]][direction[1]] != 1:
-            upp_list = [-9999] * 3
-            down_list = [-9999] * 3
-            left_list = [-9999] * 3
-            right_list = [-9999] * 3
-            scores[i] = local_search(copy.deepcopy(map), direction, 0, 1, upp_list, down_list, right_list, left_list)
-    
-    max_score = max(scores)
-    best_moves = [directions[i] for i, score in enumerate(scores) if score == max_score]
-    
-    return random.choice(best_moves)
+        # Check event
+        while self.running:
+            # Check events
+            self._check_events()
+            
+            # Check reached goal
+            if not self.reached_goal:
+                # Calculate the time elapsed
+                current_time = pygame.time.get_ticks()
+                self.time_elapsed = (current_time - start_time) // 1000 # Convert to seconds
+                
+                # # Main Function level 1
+                # self._state_curr_level_1()
+                
+                # update screen
+                self._update_screen()
 
-# Example usage
-map = [
-    [0, 0, 0, 0, 0],
-    [0, 1, 1, 1, 0],
-    [0, 1, 2, 1, 0],
-    [0, 1, 1, 1, 0],
-    [0, 0, 0, 0, 0]
-]
+            pygame.display.flip()
+            self.timer.tick(self.fps)
 
-best_move = find_best_move(map, pacman_position)
-print("Best move:", best_move)
+    ''' ######################### READ MAP ############################### '''
+    # Read map level at folder level-{number1}, map{number2}.txt
+    def _read_map_level(self, number1, number2):
+        # Read map
+        self.map = Map(self)
+
+        # Read map at folder level/level-{number1}/map{number2}.txt
+        self.world = self.map.load_level(number1, number2)
+        
+        # Get position ghost
+        ghost_pos = self.map._pos_ghost()
+        # Create ghost
+        self.ghost = Ghost(self, ghost_pos)
+
+        # Get position food
+        self.food_pos = tuple(self.map._pos_food())
+
+        # Get position pacman
+        self.pacman_pos = self.map._pos_pacman()
+        # Create pacman
+        self.pacman = Pacman(self, self.pacman_pos[0], self.pacman_pos[1])
+
+    ''' ######################### FUNCTION LEVEL 1 ############################### '''
+
+    # Using Astar Search algorithm
+    def _Astar_Search_alg(self):
+        if self.path_level_1 is None:
+            # Load map at folder map/level{..}/map{}.txt
+            self._read_map_level(1, 1)
+            self.path_level_1 = Astar(self.world, self.pacman_pos, self.food_pos)
+
+        # Astar algorithm - level 1, move Pacman follow path Astar
+        if self.path_level_1:
+            if self.path_index < len(self.path_level_1):
+                tup = self.path_level_1[self.path_index]
+
+                # Update position Pacman and move
+                self.pacman.move_pacman(tup)
+                if tup == self.food_pos:
+                    # Check reached goal if False: continue count score
+                    self.score += 20 # Updated score
+                    self.reached_goal = True
+                else:
+                    self.path_index += 1  # Move to the next coordinate
+                    self.score -= 1 # Updated score
+
+    # -----------------------------------------------------
+    # Using best first search implemnetation Search algorithm
+    def _BFS_Search_alg(self):
+        if self.path_level_1 is None:
+            # Load map at folder map/level-{}/map{}.txt
+            self._read_map_level(1, 1)
+            # self.path_level_1 = Astar(self.world, self.pacman_pos, self.food_pos)
+            self.path_level_1 = bfs(self.world, self.pacman_pos, self.food_pos)
+
+        # Astar algorithm - level 1, move Pacman follow Astar
+        if self.path_level_1:
+            if self.path_index < len(self.path_level_1):
+                tup = self.path_level_1[self.path_index]
+
+                # Update position Pacman and move
+                self.pacman.move_pacman(tup)
+                if tup == self.food_pos:
+                    # Check reached goal if False: continue count score
+                    self.score += 20 # Updated score
+                    self.reached_goal = True
+                else:
+                    self.path_index += 1  # Move to the next coordinate
+                    self.score -= 1 # Updated score
+    # -----------------------------------------------------
+    # breadth-first search implementation
+    # Using best first search implemnetation Search algorithm
+    def _BFS2_Search_alg(self):
+        if self.path_level_1 is None:
+            # Load map at folder map/level-{}/map{}.txt
+            self._read_map_level(1, 1)
+            # self.path_level_1 = Astar(self.world, self.pacman_pos, self.food_pos)
+            self.path_level_1 = bfs2(self.world, self.pacman_pos, self.food_pos)
+
+        # Astar algorithm - level 1, move Pacman follow Astar
+        if self.path_level_1:
+            if self.path_index < len(self.path_level_1):
+                tup = self.path_level_1[self.path_index]
+
+                # Update position Pacman and move
+                self.pacman.move_pacman(tup)
+                if tup == self.food_pos:
+                    # Check reached goal if False: continue count score
+                    self.score += 20 # Updated score
+                    self.reached_goal = True
+                else:
+                    self.path_index += 1  # Move to the next coordinate
+                    self.score -= 1 # Updated score
+    # -----------------------------------------------------
+    # breadth-first search implementation
+    # Using best first search implemnetation Search algorithm
+    def _DFS_Search_alg(self):
+        if self.path_level_1 is None:
+            # Load map at folder map/level-{}/map{}.txt
+            self._read_map_level(1, 1)
+            # self.path_level_1 = Astar(self.world, self.pacman_pos, self.food_pos)
+            self.path_level_1 = dfs(self.world, self.pacman_pos, self.food_pos)
+
+        # Astar algorithm - level 1, move Pacman follow Astar
+        if self.path_level_1:
+            if self.path_index < len(self.path_level_1):
+                tup = self.path_level_1[self.path_index]
+
+                # Update position Pacman and move
+                self.pacman.move_pacman(tup)
+                if tup == self.food_pos:
+                    # Check reached goal if False: continue count score
+                    self.score += 20 # Updated score
+                    self.reached_goal = True
+                else:
+                    self.path_index += 1  # Move to the next coordinate
+                    self.score -= 1 # Updated score
+    ''' ------ Function Main to executive ------ '''
+    def _state_curr_level_1(self):
+        if self.index_alg == 1:
+            self._BFS_Search_alg()
+        elif self.index_alg == 2:
+            self._BFS2_Search_alg()
+        elif self.index_alg == 3:
+            self._Astar_Search_alg()
+        elif self.index_alg == 4:
+            self._DFS_Search_alg()
+            
+    
+    ''' ########################### EVENT ############################### '''
+    # Check event
+    def _check_events(self):
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                self.running = False
+    
+    # Update screen
+    def _update_screen(self):
+        self.screen.fill((0, 0, 0))
+
+        # Draw map
+        self.map.draw_map()
+
+        # Draw Pacman
+        # self.pacman.draw()
+
+        # Draw Ghost
+        # self.ghost.draw_ghost()
+
+        '''
+            Check reached goal:
+                if True: 
+                    Stop count time and score
+                else: 
+                    Continue count time and score
+        '''
+        # Draw time and score
+        font = pygame.font.Font(None, 36)
+        time_text = font.render(f"TIME: {self.time_elapsed}", True, (255, 255, 255))
+        score_text = font.render(f"SCORE: {self.score}", True, (255, 255, 255))
+
+        # Position the text on the screen
+        self.screen.blit(time_text, (10, 10))
+        self.screen.blit(score_text, (10, 40))
+
+        # Display "YOU WIN" in the center of the screen
+        if self.reached_goal:
+            # Set font and display "YOU WIN"
+            font = pygame.font.Font(None, 72)
+            font.set_bold(True)
+            win_text = font.render("YOU WIN !!!", True, (255, 0, 0))
+            text_rect = win_text.get_rect()
+            text_rect.center = (self.WIDTH // 2, 40)  # Center the text
+            self.screen.blit(win_text, text_rect)
+
+if __name__ == '__main__':
+    ai = AI_Search_PacMan_Level_1()
+    ai.run_game()

@@ -25,6 +25,9 @@ class Interface_Graphic:
         # Set level map
         self._level_map = self._setting.level_map # Default = 1
 
+        # Set map .txt for level
+        self._choose_map_txt = self._setting.choose_map_txt
+
         # Set up Screen
         self.screen_width, self.screen_height = 1000, 562
         self.screen = pygame.display.set_mode((self.screen_width, self.screen_height))
@@ -300,28 +303,30 @@ class Interface_Graphic:
                     if self.current_screen == "choose_map":
 
                         if self.map1_buttons_rects.collidepoint(event.pos):
-                            print('a')
-
+                            self._choose_map_txt = 1
                         elif self.map2_buttons_rects.collidepoint(event.pos):
                             print('a')
+                            self._choose_map_txt = 2
+
 
                         elif self.map3_buttons_rects.collidepoint(event.pos):
                             print('a')
+                            self._choose_map_txt = 3
+
 
                         elif self.map4_buttons_rects.collidepoint(event.pos):
                             print('a')
+                            self._choose_map_txt = 4
+
 
                         elif self.map5_buttons_rects.collidepoint(event.pos):
                             print('a')
+                            self._choose_map_txt = 5
 
-                    print(self.current_screen)
             # Draw change color button if press 
             self._check_button_level_press()
-
-            
             
             ''' ==================================================== '''
-
             # Check condition state screen
             if self.current_screen == "start":
                 # Draw button "START GAME" and button "QUIT" when state screen = "Start"

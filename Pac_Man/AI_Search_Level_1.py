@@ -38,11 +38,6 @@ class AI_Search_PacMan_Level_1():
         # Check index path in algorithm for pacman move to goal
         self.path_index = 0
 
-        '''
-            Set number to choose algorithm search:
-            1: Astar Search (default)
-            2: BFS Search
-        '''
         self.index_alg = Setting().choose_algorithm
     
     ''' ######################### RUN GAME #########################- '''

@@ -141,7 +141,7 @@ class AI_Search_PacMan_Level_4():
                 
                 # Cap nhat lai ban do sau khi pac an thuc an
                 if self.world[best_move_pacman[0]][best_move_pacman[1]] == 2:
-                    self.score += 20
+                    self.score += 19
                     self.world[best_move_pacman[0]][best_move_pacman[1]] = 0
                     self.food_pos = [item for item in self.food_pos if item != (best_move_pacman[0],best_move_pacman[1])]
                 else:
