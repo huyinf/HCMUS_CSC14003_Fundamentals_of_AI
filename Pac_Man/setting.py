@@ -1,3 +1,4 @@
+# setting.py
 class Setting:
     def __init__(self):
         # Chon level cho map
@@ -14,7 +15,7 @@ class Setting:
 
         # Chọn map: Co tat ca 5 map .txt
         self.choose_map_txt = 1
-
-
-if __name__ == "__main__":
-    pass
+    
+    # Cập nhật giá trị cho choose_map_txt
+    def set_choose_map_txt(self, value):
+        self.choose_map_txt = value

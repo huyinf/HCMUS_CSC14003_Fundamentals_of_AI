@@ -11,7 +11,7 @@ import copy
     Thay đổi linh hoạt viết hàm hoạt động level 3 vào có đồ họa sẵn rồi
 '''
 class AI_Search_PacMan_Level_3():
-    def __init__(self):
+    def __init__(self, _choose_map_txt):
         pygame.init()
 
         # Initialize
@@ -22,6 +22,9 @@ class AI_Search_PacMan_Level_3():
         self.screen = pygame.display.set_mode((self.WIDTH, self.HEIGHT))
         pygame.display.set_caption(self.TITLE)
         self.timer = pygame.time.Clock()
+
+        # Setup choose map
+        self.choose_map_txt = _choose_map_txt
 
         # Initialize time and score
         self.time_elapsed = 0
@@ -70,7 +73,7 @@ class AI_Search_PacMan_Level_3():
         start_time = pygame.time.get_ticks()
         
         # Load map at folder map/level{..}/map{}.txt
-        self._read_map_level(4, 1)
+        self._read_map_level(3, self.choose_map_txt)
 
         # Check event
         while self.running:
