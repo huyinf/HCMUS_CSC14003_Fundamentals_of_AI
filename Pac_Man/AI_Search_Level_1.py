@@ -1,12 +1,12 @@
 import pygame
 import numpy as np
-from Pacman import *
+from pacman import *
 from Map import *
 from Astar import *
-from Ghost import *
+from ghost import *
 from BFS import *
 from setting import *
-from BFS2 import *
+from bf2 import *
 from dfs import *
 
 class AI_Search_PacMan_Level_1():

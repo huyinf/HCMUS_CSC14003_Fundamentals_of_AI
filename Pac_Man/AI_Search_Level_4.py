@@ -1,8 +1,8 @@
 import pygame
-from Pacman import *
+from pacman import *
 from Map34 import *
 from Astar import *
-from Ghost import *
+from ghost import *
 from BFS import *
 from Minimax_Alg import *
 import copy
