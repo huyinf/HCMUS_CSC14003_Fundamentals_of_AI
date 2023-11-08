@@ -18,6 +18,7 @@ def local_search(map, pos_pacman, score, deep, upp_list, down_list, right_list, 
     if deep == 3:
         return score
     
+    # Ham di chuyen up, down, left, right
     directions = [(pos_pacman[0] - 1, pos_pacman[1]), (pos_pacman[0] + 1, pos_pacman[1]), 
                 (pos_pacman[0], pos_pacman[1] - 1), (pos_pacman[0], pos_pacman[1] + 1)]
     
@@ -38,6 +39,7 @@ def local_search(map, pos_pacman, score, deep, upp_list, down_list, right_list, 
 
 # Tìm đường đi tốt nhất trả về một tọa độ (x,y)
 def find_best_move(map, pos_pacman, ghost_pos):
+    # Ham di chuyen up, down, left, right
     directions = [(pos_pacman[0] - 1, pos_pacman[1]), (pos_pacman[0] + 1, pos_pacman[1]), 
                 (pos_pacman[0], pos_pacman[1] - 1), (pos_pacman[0], pos_pacman[1] + 1)]
     
