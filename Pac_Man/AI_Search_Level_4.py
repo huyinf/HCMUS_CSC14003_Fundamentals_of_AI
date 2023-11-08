@@ -70,7 +70,7 @@ class AI_Search_PacMan_Level_4():
         start_time = pygame.time.get_ticks()
         
         # Load map at folder map/level{..}/map{}.txt
-        self._read_map_level(4, 5)
+        self._read_map_level(4, 3)
 
         # Check event
         while self.running:
