@@ -62,7 +62,7 @@ class AI_Search_PacMan_Level_3():
 
     ''' ######################### RUN GAME #########################- '''
     def run_game(self):
-        self.fps = 8
+        self.fps = 4
         self.running = True
         self.path_index = 0  # Initialize the index to the first coordinate in the path
 
@@ -70,7 +70,7 @@ class AI_Search_PacMan_Level_3():
         start_time = pygame.time.get_ticks()
         
         # Load map at folder map/level{..}/map{}.txt
-        self._read_map_level(4, 1)
+        self._read_map_level(4, 6)
 
         # Check event
         while self.running:
@@ -102,6 +102,7 @@ class AI_Search_PacMan_Level_3():
         
         # Get position ghost
         self.ghost_pos = self.map._pos_ghost()
+        # print(self.ghost_pos)
         
         # Create ghost
         self.ghost = Ghost(self, self.ghost_pos)
@@ -138,12 +139,13 @@ class AI_Search_PacMan_Level_3():
 
                 # Find best move pacman
                 best_move_pacman = find_best_move(map, self.pacman.get_possition_pacman(), self.ghost_pos)
-                
+                print("best move: ",best_move_pacman)
                 # Cap nhat lai ban do sau khi pac an thuc an
                 if self.world[best_move_pacman[0]][best_move_pacman[1]] == 2:
                     self.score += 20
                     self.world[best_move_pacman[0]][best_move_pacman[1]] = 0
                     self.food_pos = [item for item in self.food_pos if item != (best_move_pacman[0],best_move_pacman[1])]
+                    self._check_pass_food[best_move_pacman] = True
                 else:
                     self.score -= 1
                 
@@ -161,8 +163,9 @@ class AI_Search_PacMan_Level_3():
 
                 # Di chuyen ghost toi pacman
                 self.ghost._random_pos_ghost()
+                print(self.ghost.new_pos_ghost)
 
-                if best_move_pacman in self.ghost.pos_ghost:
+                if best_move_pacman in self.ghost.new_pos_ghost:
                     self._check_lose = True
                     self.score -= 20
             else:
@@ -194,7 +197,7 @@ class AI_Search_PacMan_Level_3():
         self.pacman.draw()
 
         # Draw Ghost
-        self.ghost.draw_ghost()
+        self.ghost.draw_ghost_level3()
 
         # Draw time and score
         font = pygame.font.Font(None, 36)
