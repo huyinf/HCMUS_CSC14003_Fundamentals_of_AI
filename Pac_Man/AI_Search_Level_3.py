@@ -24,7 +24,7 @@ class AI_Search_PacMan_Level_3():
         self.timer = pygame.time.Clock()
 
         # Setup choose map
-        self.choose_map_txt = 2
+        self.choose_map_txt = 4
 
         # Initialize time and score
         self.time_elapsed = 0
@@ -59,7 +59,7 @@ class AI_Search_PacMan_Level_3():
 
     ''' ######################### RUN GAME #########################- '''
     def run_game(self):
-        self.fps = 4
+        self.fps = 6
         self.running = True
         self.path_index = 0  # Initialize the index to the first coordinate in the path
 
@@ -162,7 +162,7 @@ class AI_Search_PacMan_Level_3():
 
                 # Di chuyen ghost toi pacman
                 # self.ghost._random_pos_ghost()
-                
+
                 if best_move_pacman in old_pos_ghost:
                     self._check_lose = True 
                 else:
