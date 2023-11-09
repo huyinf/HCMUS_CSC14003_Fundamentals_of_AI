@@ -1,6 +1,6 @@
 import pygame
 from pacman import *
-from Map import *
+from Map34 import *
 from Astar import *
 from ghost import *
 from BFS import *
@@ -11,7 +11,7 @@ import copy
     Thay đổi linh hoạt viết hàm hoạt động level 3 vào có đồ họa sẵn rồi
 '''
 class AI_Search_PacMan_Level_3():
-    def __init__(self):
+    def __init__(self, _choose_map_txt):
         pygame.init()
 
         # Initialize
@@ -24,7 +24,7 @@ class AI_Search_PacMan_Level_3():
         self.timer = pygame.time.Clock()
 
         # Setup choose map
-        self.choose_map_txt = 4
+        self.choose_map_txt = _choose_map_txt
 
         # Initialize time and score
         self.time_elapsed = 0

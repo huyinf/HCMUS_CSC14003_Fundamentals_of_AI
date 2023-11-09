@@ -100,12 +100,10 @@ class Interface_Graphic:
         self.BFS_buttons = self.font.render("BFS (Best-First Search)", True, self.YELLOW)
         self.BFS2_buttons = self.font.render("BFS (Breadth-First Search)", True, self.YELLOW)
         self.ASTAR_buttons = self.font.render("ASTAR", True, self.YELLOW)
-        self.DFS_buttons = self.font.render("DFS", True, self.YELLOW)
 
         self.BFS_buttons_rects = self.BFS_buttons.get_rect(left=self.screen_width // 2 + 10, top = self.screen_height // 2 - 175)
         self.BFS2_buttons_rects = self.BFS2_buttons.get_rect(left=self.screen_width // 2  + 10, top =self.screen_height // 2 - 100)
         self.ASTAR_buttons_rects = self.ASTAR_buttons.get_rect(left=self.screen_width // 2  + 10, top = self.screen_height // 2 -25)
-        self.DFS_buttons_rects = self.DFS_buttons.get_rect(left=self.screen_width // 2  + 10, top = self.screen_height // 2 + 50)
         
         # State current screen
         self.current_screen = "start"  # Màn hình "Start" ban đầu
@@ -245,11 +243,6 @@ class Interface_Graphic:
                     else:
                         self.BFS_buttons = self.font.render("BFS (Best-First Search)", True, self.YELLOW)
 
-                    if self.DFS_buttons_rects.collidepoint(mouse_x, mouse_y):
-                        self.DFS_buttons = self.font.render("DFS", True, self.change_button_color)
-                    else:
-                        self.DFS_buttons = self.font.render("DFS", True, self.YELLOW)
-
                     if self.ASTAR_buttons_rects.collidepoint(mouse_x, mouse_y):
                         self.ASTAR_buttons = self.font.render("ASTAR", True, self.change_button_color)
                     else:
@@ -310,9 +303,6 @@ class Interface_Graphic:
                         self._choose_level_map_rungame()
                     elif self.ASTAR_buttons_rects.collidepoint(event.pos):
                         self._choose_algorithm = 3
-                        self._choose_level_map_rungame()
-                    elif self.DFS_buttons_rects.collidepoint(event.pos):
-                        self._choose_algorithm = 4
                         self._choose_level_map_rungame()
 
                     # Return main interface, BACK
@@ -378,7 +368,6 @@ class Interface_Graphic:
                 self.screen.blit(self.BFS_buttons, self.BFS_buttons_rects)
                 self.screen.blit(self.BFS2_buttons, self.BFS2_buttons_rects)
                 self.screen.blit(self.ASTAR_buttons, self.ASTAR_buttons_rects)
-                self.screen.blit(self.DFS_buttons, self.DFS_buttons_rects)
                 
             # Check current screen "choose_map"
             elif self.current_screen == "choose_map":

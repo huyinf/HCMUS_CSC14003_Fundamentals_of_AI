@@ -7,7 +7,6 @@ from ghost import *
 from BFS import *
 from setting import *
 from bf2 import *
-from dfs import *
 
 class AI_Search_PacMan_Level_2():
     def __init__(self, _choose_algorithm, _choose_map_txt):
@@ -47,12 +46,9 @@ class AI_Search_PacMan_Level_2():
         '''
         self.index_alg = _choose_algorithm
 
-        print('bbb', self.index_alg)
         # Choose map 
         self.choose_map_txt = _choose_map_txt
 
-        print("aaaa",self.choose_map_txt)
-    
     ''' ######################### RUN GAME #########################- '''
     def run_game(self):
         self.fps = 8
@@ -175,30 +171,7 @@ class AI_Search_PacMan_Level_2():
                 else:
                     self.path_index += 1  # Move to the next coordinate
                     self.score -= 1 # Updated score
-    # -----------------------------------------------------
-    # breadth-first search implementation
-    # Using best first search implemnetation Search algorithm
-    def _DFS_Search_alg(self):
-        if self.path_level_2 is None:
-            # Load map at folder map/level-{}/map{}.txt
-            self._read_map_level(2, self.choose_map_txt)
-            # self.path_level_2 = Astar(self.world, self.pacman_pos, self.food_pos)
-            self.path_level_2 = dfs(self.world, self.pacman_pos, self.food_pos)
 
-        # Astar algorithm - level 1, move Pacman follow Astar
-        if self.path_level_2:
-            if self.path_index < len(self.path_level_2):
-                tup = self.path_level_2[self.path_index]
-
-                # Update position Pacman and move
-                self.pacman.move_pacman(tup)
-                if tup == self.food_pos:
-                    # Check reached goal if False: continue count score
-                    self.score += 20 # Updated score
-                    self.reached_goal = True
-                else:
-                    self.path_index += 1  # Move to the next coordinate
-                    self.score -= 1 # Updated score
     ''' ------ Function Main to executive ------ '''
     def _state_curr_level_2(self):
         if self.index_alg == 1:
@@ -207,8 +180,6 @@ class AI_Search_PacMan_Level_2():
             self._BFS2_Search_alg()
         elif self.index_alg == 3:
             self._Astar_Search_alg()
-        elif self.index_alg == 4:
-            self._DFS_Search_alg()
             
     
     ''' ########################### EVENT ############################### '''

@@ -64,7 +64,6 @@ def find_best_move(map, pos_pacman, ghost_pos, food_pos):
     directions = [(pos_pacman[0] - 1, pos_pacman[1]), (pos_pacman[0] + 1, pos_pacman[1]), 
                 (pos_pacman[0], pos_pacman[1] - 1), (pos_pacman[0], pos_pacman[1] + 1)]
     
-    print(food_pos)
     scores = [-9999] * 4
     for i, direction in enumerate(directions):
         if map[direction[0]][direction[1]] != 1:

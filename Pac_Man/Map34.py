@@ -61,9 +61,6 @@ class Map:
                     block_x = map_x + x * BLOCK_SIZE
                     block_y = map_y + y * BLOCK_SIZE
                     self.screen.blit(image, (block_x, block_y))
-        for pos in self.pos_ghost:
-            image1 = pygame.transform.scale(pygame.image.load(self.power_path), (25,25))
-            self.screen.blit(image1, (map_x + pos[1] * BLOCK_SIZE, map_y + pos[0]* BLOCK_SIZE))
 
     # Position Food
     def _pos_food(self):
