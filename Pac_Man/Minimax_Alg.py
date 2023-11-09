@@ -92,8 +92,7 @@ def minimax_alg(map, pos_pacman, pos_ghost, score, deep,upp_list,down_list,right
                 check_food_hard += 1
             if check_food_hard == 3:
                 score += 500
-       
-    
+
         # tao ghost di chuyen toi pacman
         pos_ghost_new = []
         for ghost in pos_ghost:

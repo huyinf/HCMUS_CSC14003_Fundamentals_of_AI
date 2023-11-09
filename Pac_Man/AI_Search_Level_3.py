@@ -1,6 +1,6 @@
 import pygame
 from pacman import *
-from Map34 import *
+from Map import *
 from Astar import *
 from ghost import *
 from BFS import *
@@ -11,7 +11,7 @@ import copy
     Thay đổi linh hoạt viết hàm hoạt động level 3 vào có đồ họa sẵn rồi
 '''
 class AI_Search_PacMan_Level_3():
-    def __init__(self, _choose_map_txt):
+    def __init__(self):
         pygame.init()
 
         # Initialize
@@ -24,7 +24,7 @@ class AI_Search_PacMan_Level_3():
         self.timer = pygame.time.Clock()
 
         # Setup choose map
-        self.choose_map_txt = _choose_map_txt
+        self.choose_map_txt = 2
 
         # Initialize time and score
         self.time_elapsed = 0
@@ -35,12 +35,6 @@ class AI_Search_PacMan_Level_3():
             True  --> reached goal
         '''
         self.reached_goal = False
-
-        # Set up path Astar
-        self.path_level_4_minimax = None
-
-        # Set up path BFS
-        # self.path_level_2_BFS = None
 
         # Check index path in algorithm to pacman move to goal
         self.path_index = 0
@@ -73,7 +67,7 @@ class AI_Search_PacMan_Level_3():
         start_time = pygame.time.get_ticks()
         
         # Load map at folder map/level{..}/map{}.txt
-        self._read_map_level(4, 6)
+        self._read_map_level(3, self.choose_map_txt)
 
         # Check event
         while self.running:
@@ -85,7 +79,7 @@ class AI_Search_PacMan_Level_3():
                 current_time = pygame.time.get_ticks()
                 self.time_elapsed = (current_time - start_time) // 1000 # Convert to seconds
                 
-                # Main Function level 4
+                # Main Function level 3
                 self._state_curr_level_3()
                 
                 # update screen
@@ -140,9 +134,11 @@ class AI_Search_PacMan_Level_3():
                 # Copy position food
                 food_check = copy.deepcopy(self.food_pos)
 
+                old_pos_ghost = self.ghost.new_pos_ghost
+
                 # Find best move pacman
-                best_move_pacman = find_best_move(map, self.pacman.get_possition_pacman(), self.ghost_pos)
-                print("best move: ",best_move_pacman)
+                best_move_pacman = find_best_move(map, self.pacman.get_possition_pacman(), copy.deepcopy(self.ghost.new_pos_ghost), food_check)
+
                 # Cap nhat lai ban do sau khi pac an thuc an
                 if self.world[best_move_pacman[0]][best_move_pacman[1]] == 2:
                     self.score += 20
@@ -165,14 +161,18 @@ class AI_Search_PacMan_Level_3():
                     self._check_ghost = True
 
                 # Di chuyen ghost toi pacman
-                self.ghost._random_pos_ghost()
-                print(self.ghost.new_pos_ghost)
+                # self.ghost._random_pos_ghost()
+                
+                if best_move_pacman in old_pos_ghost:
+                    self._check_lose = True 
+                else:
+                    self.ghost._random_pos_ghost()
+                    if best_move_pacman in self.ghost.new_pos_ghost:
+                        self._check_lose = True 
 
-                if best_move_pacman in self.ghost.new_pos_ghost:
-                    self._check_lose = True
-                    self.score -= 20
             else:
-                self.reached_goal = True            
+                self.reached_goal = True      
+
 
     ''' ------ Function Main to executive ------ '''
     '''

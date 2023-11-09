@@ -31,6 +31,7 @@ class Ghost(Sprite):
 
         for pos in self.pos_ghost:
             self.screen.blit(self.image, (map_x + pos[1] * BLOCK_SIZE, map_y + pos[0] * BLOCK_SIZE))
+    
     # Draw ghost on the screen
     def draw_ghost_level3(self):
         map_width = len(self.world[0]) * BLOCK_SIZE

@@ -66,12 +66,11 @@ class Map:
     # Position Food
     def _pos_food(self):
         for y, row in enumerate(self.world):
-            for x, block in enumerate(row):
-                if self.world[y][x] == 2:
-                    self.pos_food.append(y)
-                    self.pos_food.append(x)
+                for x, block in enumerate(row):
+                    if self.world[y][x] == 2:
+                        self.pos_food.append((y,x))
         return self.pos_food
-    
+        
     # Position Ghost
     def _pos_ghost(self):
         for y, row in enumerate(self.world):
