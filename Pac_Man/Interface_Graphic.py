@@ -20,10 +20,16 @@ class Interface_Graphic:
         # Init Game
         pygame.init()
 
-        self._setting = Setting()
+        # self._setting = Setting()
         
         # Set level map
-        self._level_map = self._setting.level_map # Default = 1
+        self._level_map = 1 # Default = 1
+
+        # Set map txt
+        self._choose_map_txt = 1
+
+        # set algorithm for level 1 2
+        self._choose_algorithm = 1
 
         # Set up Screen
         self.screen_width, self.screen_height = 1000, 562
@@ -38,7 +44,7 @@ class Interface_Graphic:
         self.scale_factor = min(self.screen_width / self.bg_width, self.screen_height / self.bg_height)
         self.new_width = int(self.bg_width * self.scale_factor)
         self.new_height = int(self.bg_height * self.scale_factor)
-
+        
         self.background_image = pygame.transform.scale(self.background_image, (self.new_width, self.new_height))
 
         # Define font
@@ -97,9 +103,9 @@ class Interface_Graphic:
         self.DFS_buttons = self.font.render("DFS", True, self.YELLOW)
 
         self.BFS_buttons_rects = self.BFS_buttons.get_rect(left=self.screen_width // 2 + 10, top = self.screen_height // 2 - 175)
-        self.DFS_buttons_rects = self.DFS_buttons.get_rect(left=self.screen_width // 2  + 10, top = self.screen_height // 2 - 100)
+        self.BFS2_buttons_rects = self.BFS2_buttons.get_rect(left=self.screen_width // 2  + 10, top =self.screen_height // 2 - 100)
         self.ASTAR_buttons_rects = self.ASTAR_buttons.get_rect(left=self.screen_width // 2  + 10, top = self.screen_height // 2 -25)
-        self.BFS2_buttons_rects = self.BFS2_buttons.get_rect(left=self.screen_width // 2  + 10, top =self.screen_height // 2 + 50)
+        self.DFS_buttons_rects = self.DFS_buttons.get_rect(left=self.screen_width // 2  + 10, top = self.screen_height // 2 + 50)
         
         # State current screen
         self.current_screen = "start"  # Màn hình "Start" ban đầu
@@ -121,7 +127,24 @@ class Interface_Graphic:
         self._pacman_bg_rect = self._pacman_bg.get_rect(center=(self.bg_width//2, self.bg_height//2 - 150))
         
         self.check_show_pacman_bg = True
-    '''
+
+        # Insert image map.txt 
+        self.maps_txt_image = []
+        self.maps_txt_image_rect = []
+        for i in range(5):
+            img = pygame.image.load(os.path.join(current_dir,f"images_map/map{i + 1}.png"))
+            # img = pygame.transform.scale(img, (self.new_width // 2, self.new_height // 2))
+            self.maps_txt_image.append(img)
+            img_rect = img.get_rect(center=(self.bg_width//2 + 100, self.bg_height//2))
+            self.maps_txt_image_rect.append(img_rect)
+
+        
+        # Check show maps txt image
+        self._check_show_map_txt = False
+
+        # Check button press to change color red
+        self._check_press_map_txt = 1
+    '''     
         RUN GAME MAIN
     '''
     def run_game(self):
@@ -254,74 +277,75 @@ class Interface_Graphic:
                     # Search Level 1 Pacman
                     elif self.level1_buttons_rects.collidepoint(event.pos):
                         self.current_screen = "show_algorithm"
-                        self._setting.level_map = 1
+                        self._level_map = 1
                         self._check_button_press = 1
                 
                     # Search Level 2 Pacman
                     elif self.level2_buttons_rects.collidepoint(event.pos):
                         self.current_screen = "show_algorithm"
-                        self._setting.level_map = 2
+                        self._level_map = 2
                         self._check_button_press = 2
                     
                     # Search level 3 Pacman
                     elif self.level3_buttons_rects.collidepoint(event.pos):
                         self.current_screen = "level_select"
-                        self._setting.level_map = 3
+                        self._level_map = 3
                         self._check_button_press = 3
-                        # self._choose_level_map_rungame()
+                        self._choose_level_map_rungame()
 
                     # Search level 4 Pacman
                     elif self.level4_buttons_rects.collidepoint(event.pos):
                         self.current_screen = "level_select"
-                        self._setting.level_map = 4
+                        self._level_map = 4
                         # self.current_screen = "level_select"
                         self._check_button_press = 4
                         self._choose_level_map_rungame()
 
                     # Check Algorithm using for level 1, 2
                     elif self.BFS_buttons_rects.collidepoint(event.pos):
-                        self._setting.choose_algorithm = 1
+                        self._choose_algorithm = 1
                         self._choose_level_map_rungame()
                     elif self.BFS2_buttons_rects.collidepoint(event.pos):
-                        self._setting.choose_algorithm = 2
+                        self._choose_algorithm = 2
                         self._choose_level_map_rungame()
                     elif self.ASTAR_buttons_rects.collidepoint(event.pos):
-                        self._setting.choose_algorithm = 3
+                        self._choose_algorithm = 3
                         self._choose_level_map_rungame()
                     elif self.DFS_buttons_rects.collidepoint(event.pos):
-                        self._setting.choose_algorithm = 4
+                        self._choose_algorithm = 4
                         self._choose_level_map_rungame()
 
                     # Return main interface, BACK
                     elif self.back_button_rect.collidepoint(event.pos):
+                        self.check_show_pacman_bg = True
                         self.current_screen = "start"
 
                     # Check mouse button map txt
                     if self.current_screen == "choose_map":
 
                         if self.map1_buttons_rects.collidepoint(event.pos):
-                            print('a')
+                            self._choose_map_txt = 1
 
                         elif self.map2_buttons_rects.collidepoint(event.pos):
-                            print('a')
+                            self._choose_map_txt = 2
 
                         elif self.map3_buttons_rects.collidepoint(event.pos):
-                            print('a')
+                            self._choose_map_txt = 3
 
                         elif self.map4_buttons_rects.collidepoint(event.pos):
-                            print('a')
+                            self._choose_map_txt = 4
 
                         elif self.map5_buttons_rects.collidepoint(event.pos):
-                            print('a')
+                            self._choose_map_txt = 5
 
-                    print(self.current_screen)
+
+                print(self._choose_map_txt)
             # Draw change color button if press 
             self._check_button_level_press()
 
-            
+            self._check_button_map_press()
             
             ''' ==================================================== '''
-
             # Check condition state screen
             if self.current_screen == "start":
                 # Draw button "START GAME" and button "QUIT" when state screen = "Start"
@@ -368,6 +392,22 @@ class Interface_Graphic:
                 
                 # Draw back button
                 self.screen.blit(self.back_button, self.back_button_rect)
+
+                if self._choose_map_txt == 1:
+                    self.screen.blit(self.maps_txt_image[0], self.maps_txt_image_rect[0])
+                    
+                elif self._choose_map_txt == 2:
+                    self.screen.blit(self.maps_txt_image[1], self.maps_txt_image_rect[1])
+                    
+                elif self._choose_map_txt == 3:
+                    self.screen.blit(self.maps_txt_image[2], self.maps_txt_image_rect[2])
+                    
+                elif self._choose_map_txt == 4:
+                    self.screen.blit(self.maps_txt_image[3], self.maps_txt_image_rect[3])
+                    
+                elif self._choose_map_txt == 5:
+                    self.screen.blit(self.maps_txt_image[4], self.maps_txt_image_rect[4])
+                    
             
 
             pygame.display.update()
@@ -376,17 +416,17 @@ class Interface_Graphic:
     
     # Chọn level map để chạy
     def _choose_level_map_rungame(self):
-        if self._setting.level_map == 1:
-            self.ai_search_pacman = AI_Search_PacMan_Level_1()
+        if self._level_map == 1:
+            self.ai_search_pacman = AI_Search_PacMan_Level_1(self._choose_algorithm, self._choose_map_txt)
             self.ai_search_pacman.run_game()
-        elif self._setting.level_map == 2:
-            self.ai_search_pacman = AI_Search_PacMan_Level_2()
+        elif self._level_map == 2:
+            self.ai_search_pacman = AI_Search_PacMan_Level_2(self._choose_algorithm, self._choose_map_txt)
             self.ai_search_pacman.run_game()
-        elif self._setting.level_map == 3:
-            self.ai_search_pacman = AI_Search_PacMan_Level_3()
+        elif self._level_map == 3:
+            self.ai_search_pacman = AI_Search_PacMan_Level_3(self._choose_map_txt)
             self.ai_search_pacman.run_game()
-        elif self._setting.level_map == 4:
-            self.ai_search_pacman = AI_Search_PacMan_Level_4()
+        elif self._level_map == 4:
+            self.ai_search_pacman = AI_Search_PacMan_Level_4(self._choose_map_txt)
             self.ai_search_pacman.run_game()
         
     ''' ==================================================== '''
@@ -405,7 +445,24 @@ class Interface_Graphic:
             # Check mouse in 'level1' button to change color
             self.level4_buttons = self.font.render("LEVEL 4", True, self.RED)
 
-                    
+    # Check button press level 
+    def _check_button_map_press(self):
+        if self._choose_map_txt == 1:
+            # Check mouse in 'level1' button to change color
+            self.map1_buttons = self.font.render("MAP 1", True, self.RED)
+        elif self._choose_map_txt == 2:
+            # Check mouse in 'level1' button to change color
+            self.map2_buttons = self.font.render("MAP 2", True, self.RED)
+        elif self._choose_map_txt == 3:
+            # Check mouse in 'level1' button to change color
+            self.map3_buttons = self.font.render("MAP 3", True, self.RED)
+        elif self._choose_map_txt == 4:
+            # Check mouse in 'level1' button to change color
+            self.map4_buttons = self.font.render("MAP 4", True, self.RED)
+        elif self._choose_map_txt == 5:
+            # Check mouse in 'level1' button to change color
+            self.map5_buttons = self.font.render("MAP 5", True, self.RED)
+
 
 if __name__ == '__main__':
     interface_graphic = Interface_Graphic()
