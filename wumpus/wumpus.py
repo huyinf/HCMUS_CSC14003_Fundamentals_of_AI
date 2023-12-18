@@ -22,7 +22,7 @@ nW = 0
 
 # input file
 filename = './input.txt'
-    
+
 
 
 # FOL model
@@ -50,6 +50,9 @@ def FOLmodel(M,nG,nW):
 
     # record visited cells
     path = list()
+    
+    # shoot lists
+    shoot = []
         
     # record list of keyboards of changing direction
     keys = []
