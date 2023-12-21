@@ -1,5 +1,5 @@
 import heapq
-
+import re
 
 signal_pairs = {'W':'S',
                 'S':'W',
@@ -8,17 +8,7 @@ signal_pairs = {'W':'S',
                 'BS':'PW',
                 }
 
-# map
-M = []
-# knowledge
-K = []
-# track visiting times for optimization
-V = []
-
-# number of golds
-nG = 0
-# number of wumpus
-nW = 0
+opposite_dir_pairs = (('U','D'),('D','U'),('L','R'),('R','L'))
 
 # input file
 filename = './input.txt'
@@ -49,13 +39,23 @@ def FOLmodel(M,nG,nW):
     exit_pos = (len(M)-1,len(M[0])-1)
 
     # record visited cells
-    path = list()
+    path = []
     
     # shoot lists
     shoot = []
-        
+    
+    # instruction list
+    '''
+    action - forward, turn back, turn left, turn right, shoot (no move)
+    encode - F,B,L,R,S
+    '''
+    actions = []
+    
+    # initial direction
+    direction = 'R'
+    
     # record list of keyboards of changing direction
-    keys = []
+    # keys = []
     
     # get score and score_list for game visualization
     scores_list = []
@@ -70,11 +70,12 @@ def FOLmodel(M,nG,nW):
         print('knowledge:',K)
         # print(V)      
         print('path:',path)
-        print('list of keyboards: ',keys)
+        # print('list of keyboards: ',keys)
         # print(scores_list)
         print('score:',score)
         print('left wumpuses:',nW)
         print('left golds:',nG)
+        print('instruction: ',actions)
         
     
     # run until win or die
@@ -106,14 +107,19 @@ def FOLmodel(M,nG,nW):
             results()
             return path,score
 
-        # climb out of the cave
-        if curr_pos == exit_pos:
-            print('state: out')
-            results()
-            return path,score
+        # # climb out of the cave
+        # if curr_pos == exit_pos:
+        #     print('state: out')
+        #     results()
+        #     return path,score
+        
+        # get gold and modify signal
+        if 'G' in signal:
+            nG -= 1
+            signal = signal.replace('G','')
 
         # if agent is still agent or game is still running
-        if signal == 'B' or signal == 'S' or signal == 'BS':
+        if re.search('B|S',signal):
             update_knowledge(x_prev,y_prev,x,y,signal,K,V)
             
             # get adjacent cells of current cell to find and kill wumpus if possible
@@ -124,9 +130,13 @@ def FOLmodel(M,nG,nW):
                 # use knowledge to determine whether wumpus is in room
                 if K[nX][nY] in ('W'):
                     
+                    rotation,new_direction = rotate(direction,x,y,nX,nY)
+                    actions.append(rotation)
+                    direction = new_direction
+                    actions.append('S')
+                    kill(nX,nY,K)
                     # decrease the number of wumpuses
                     nW -= 1
-                    kill(nX,nY,K)
                     # shoot an arrow
                     score -= 100
                      
@@ -146,7 +156,13 @@ def FOLmodel(M,nG,nW):
         # choose the "best" move
         curr_pos = move(moves,M)
         
-        keys.append(rotate(prev_pos[0],prev_pos[1],curr_pos[0],curr_pos[1]))
+        # change direction for new move
+        '''
+        '''
+        rotation,new_direction = rotate(direction,x,y,curr_pos[0],curr_pos[1])
+        actions.append(rotation)
+        actions.append('F')
+        direction = new_direction
         
         score -= 10
         
@@ -154,8 +170,9 @@ def FOLmodel(M,nG,nW):
         x,y = curr_pos
         V[x][y] += 1
     
-            
-
+    print("out loop")
+    results()
+    return path,score
 
 # get list of the next possible moves for agent
 '''
@@ -330,9 +347,9 @@ def build_map(filename):
     with open(filename,'r') as f:
         lines = f.readlines()
         # get size of map --> map: sz x sz
-        sz = int(lines[0])
+        # sz = int(lines[0])
         # get value for cells, remove escape character '\n'
-        rows = [[(cell[:-1] if cell.endswith('\n') else cell) for cell in line.split('.')] for line in lines[1:sz+1]]
+        rows = [[(cell[:-1] if cell.endswith('\n') else cell) for cell in line.split('.')] for line in lines]
     
     nG = 0
     nW = 0
@@ -368,29 +385,60 @@ def write_ouput(path,score):
 # rotation
 '''
 input:
-    dir - current direction of agent (???)
+    direction - current direction of agent (???)
     x,y - current position of agent
     x_next,y_next - position of the disired move of agent
 output:
-    rotation to the desired direction for game logic
-    
-        A   -   turn left
-        D   -   turn right
-        W   -   none (forward)
-        S   -   turn left(x2) (backward)
-        
-    note: map with keyboard (gamer definitely understand.)
+    action - rotate or not
+    new_direction
 '''
-def rotate(x,y,x_next,y_next):
+def rotate(direction,x,y,x_next,y_next):
     
+    # no action
+    if x == x_next and y == y_next:
+        return None
+    
+    # directions - 0,1,2,3
+    dirs = ['U','L','D','R']
+    # keys - 0,1,2,3
+    keys = ['W','A','S','D']
+    
+    key = ''
     if x_next < x:
-        return 'W'
+        key = 'W'
     if x_next > x:
-        return 'S'
+        key = 'S'
     if y_next < y:
-        return 'A'
+        key = 'A'
     if y_next > y:
-        return 'D'
+        key = 'D'
+        
+    id_dir = dirs.index(direction)
+    
+    id_key = keys.index(key)
+    
+    gap = id_key - id_dir
+    
+    '''
+    '''
+    rotation = None
+    
+    if gap == -1 or gap == 3:
+        rotation = 'R'
+    
+    elif gap == 1 or gap == -3:
+        rotation = 'L'
+    elif abs(gap) == 2:
+        rotation = 'B'
+    
+    # excel
+    # id_new_dir = (id_dir+id_key)%4 if (id_dir%2==0) else (id_dir + id_key + 2)%4
+    
+    new_direction = dirs[id_key]
+    
+    return rotation,new_direction
+        
+    
 
 
 # kill wumpus
@@ -406,6 +454,26 @@ def kill(x,y,K):
     K[x][y] = 'E'
     inference(x,y,'E',K)
     
+    
+# transform map from top-left-rooted to bottom-left-rooted
+'''
+break into 2 steps = transpose + horizontal flip
+'''
+# def transform(M):
+#     # M is a square matrix, size = 10
+#     size = len(M)
+#     # transpose
+#     for i in range(size):
+#         for j in range(i+1):
+#             M[i][j],M[j][i] = M[j][i],M[i][j]
+            
+#     # horizontal flip
+#     for i in range((size+1)/2):
+#         for j in range(size):
+#             M[i][j],M[size-i][j] = M[size-i][j],M[i][j]
+
+
+
 # ========================================================================
 # ranh roi
 
@@ -418,10 +486,18 @@ def check_out_of_wumpus():
 # ========================================================================
 
 
+
 M,nW,nG = build_map(filename)
-# print('Map:',M)
-res = FOLmodel(M,nG,nW)
-path = res[0]
-score = res[1]
-# print(type(path))
-write_ouput(path,score)
+
+print('Map:',M)
+
+M_hat = transform(M)
+
+print(M_hat)
+
+# print(nW,nG)
+
+# res = FOLmodel(M,nG,nW)
+# path = res[0]
+# score = res[1]
+# write_ouput(path,score)

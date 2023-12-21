@@ -1,8 +1,8 @@
 import random
 
 size = 10
-nW = 5
-nP = 5
+nW = 10
+nP = 10
 nG = 5
 
 # object_adjObj pairs
