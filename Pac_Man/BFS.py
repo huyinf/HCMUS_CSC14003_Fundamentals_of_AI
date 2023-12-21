@@ -1,7 +1,6 @@
 # best first search implemnetation
 import heapq
 import math
-import generate_map as gm
 
 def bfs(matrix, start, goal):
 

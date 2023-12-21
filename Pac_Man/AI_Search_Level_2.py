@@ -5,7 +5,6 @@ from Map import *
 from Astar import *
 from ghost import *
 from BFS import *
-from setting import *
 from bf2 import *
 
 class AI_Search_PacMan_Level_2():

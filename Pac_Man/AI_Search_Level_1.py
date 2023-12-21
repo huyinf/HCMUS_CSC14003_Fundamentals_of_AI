@@ -5,7 +5,6 @@ from Map import *
 from Astar import *
 from ghost import *
 from BFS import *
-from setting import *
 from bf2 import *
 
 class AI_Search_PacMan_Level_1():
@@ -45,11 +44,11 @@ class AI_Search_PacMan_Level_1():
         '''
         self.index_alg = _choose_algorithm
 
-        print('bbb', self.index_alg)
+        # print('bbb', self.index_alg)
         # Choose map 
         self.choose_map_txt = _choose_map_txt
 
-        print("aaaa",self.choose_map_txt)
+        # print("aaaa",self.choose_map_txt)
     
     ''' ######################### RUN GAME #########################- '''
     def run_game(self):

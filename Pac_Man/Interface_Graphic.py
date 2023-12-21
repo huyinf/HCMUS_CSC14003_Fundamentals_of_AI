@@ -5,7 +5,6 @@ from AI_Search_Level_1 import *
 from AI_Search_Level_2 import *
 from AI_Search_Level_3 import *
 from AI_Search_Level_4 import *
-from setting import *
 
 # Set algorithm for level 1, 2
 '''
@@ -38,7 +37,7 @@ class Interface_Graphic:
 
         # Load image
         current_dir = os.path.dirname(os.path.abspath(__file__))
-        self.background_image = pygame.image.load(os.path.join(current_dir,"images/bg.jpg"))
+        self.background_image = pygame.image.load(os.path.join(current_dir,"images/bg1.jpg"))
         self.bg_width, self.bg_height = self.background_image.get_size()
 
         self.scale_factor = min(self.screen_width / self.bg_width, self.screen_height / self.bg_height)
@@ -122,7 +121,7 @@ class Interface_Graphic:
         self._check_button_press = 0
         self._pacman_bg = pygame.image.load(os.path.join(current_dir,"images/bg1.jpg"))
         self._pacman_bg =  pygame.transform.scale(self._pacman_bg, (self.new_width//2, self.new_height//2))
-        self._pacman_bg_rect = self._pacman_bg.get_rect(center=(self.bg_width//2, self.bg_height//2 - 150))
+        self._pacman_bg_rect = self._pacman_bg.get_rect(center=(self.bg_width//2 - 150, self.bg_height//2 - 200))
         
         self.check_show_pacman_bg = True
 
@@ -329,7 +328,7 @@ class Interface_Graphic:
                             self._choose_map_txt = 5
 
 
-                print(self._choose_map_txt)
+                # print(self._choose_map_txt)
             # Draw change color button if press 
             self._check_button_level_press()
 
