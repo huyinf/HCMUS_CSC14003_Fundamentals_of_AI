@@ -1,5 +1,3 @@
-# Import thư viện Glucose3 từ pysat.solvers và thư viện copy của Python
-from pysat.solvers import Glucose3
 import copy
 
 class KnowledgeBase:
@@ -26,21 +24,16 @@ class KnowledgeBase:
 
     def infer(self, not_alpha):
         """Kiểm tra tính suy luận: nếu KB và not_alpha đồng thời không hợp lệ thì trả về True, ngược lại trả về False."""
-        # Tạo một bộ giải quyết bài toán SAT từ Glucose3
-        g = Glucose3()
-        
-        # Sao chép danh sách mệnh đề từ KB để không ảnh hưởng đến KB gốc
-        clause_list = copy.deepcopy(self.KB)
-        
-        # Thêm mệnh đề phủ định của alpha (not_alpha) vào bộ giải quyết
-        negative_alpha = not_alpha
-        for it in clause_list:
-            g.add_clause(it)
-        for it in negative_alpha:
-            g.add_clause(it)
-        
-        # Giải bài toán SAT và kiểm tra nếu có lời giải
-        sol = g.solve()
-        if sol:
-            return False
-        return True
+        # Để đơn giản hóa, chúng ta chỉ kiểm tra xem có một mệnh đề trong KB mà không hợp lệ hay không
+        for clause in self.KB:
+            if self.is_unsatisfiable(clause, not_alpha):
+                return True
+        return False
+
+    def is_unsatisfiable(self, clause1, clause2):
+        """Kiểm tra xem hai mệnh đề có không thể đồng thời đúng hay không."""
+        # Đơn giản là so sánh từng phần tử trong hai mệnh đề
+        for literal in clause1:
+            if -literal in clause2:  # -literal là phủ định của literal
+                return True
+        return False

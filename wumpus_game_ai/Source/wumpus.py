@@ -8,7 +8,6 @@ class Wumpus:
         
         # Khởi tạo các thuộc tính cho Wumpus
         self.size = 10  # Kích thước của môi trường (10x10)
-        self.pos = (900, 100)  # Vị trí mặc định của text Wumpus
         self.is_discovered = None  # Biểu thị xem Wumpus đã được khám phá hay chưa
         
         # Khởi tạo mảng 2 chiều để theo dõi thông báo và vị trí của Wumpus
@@ -23,9 +22,9 @@ class Wumpus:
         """Hiển thị thông báo khi Wumpus bị giết."""
         text = font.render('Wumpus is killed !!!', True, BLACK)
         textRect = text.get_rect()
-        textRect.center = self.pos
+        textRect.center = (900, 180)
         screen.blit(text, textRect)
-        screen.blit(self.image, (800, 200))
+        screen.blit(self.image, (805, 250))
         pygame.display.update()
 
     def wumpus_notification(self):
@@ -66,7 +65,7 @@ class Wumpus:
                     textRect = text.get_rect()
                     textRect.center = (45 + j * 70, 30 + i * 70)
                     screen.blit(text, textRect)
-                    pygame.display.update()
+                    # pygame.display.update()
 
     def stench_i_j(self, i, j):
         """Kiểm tra xem ô tại vị trí (i, j) có mùi Stench hay không."""
