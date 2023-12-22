@@ -44,4 +44,4 @@ class Pit:
                     textRect = text.get_rect()
                     textRect.center = (42 + j * 70, 40 + i * 70)
                     screen.blit(text, textRect)
-                    pygame.display.update()
+                    # pygame.display.update()

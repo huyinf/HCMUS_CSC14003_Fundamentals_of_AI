@@ -61,13 +61,22 @@ class Map:
 
     # show result
     def agent_climb(self, screen, font):
-        text = font.render('Climbed out !!!', True, BLACK)
+        text = font.render('Climbed out !!!', True, RED)
         textRect = text.get_rect()
         textRect.center = (900, 100)
         screen.blit(text, textRect)
-        text = font.render('Score + 10', True, BLACK)
+        text = font.render('Score + 10', True, RED)
         textRect.center = (920, 150)
         screen.blit(text, textRect)
-
+    
+    def agent_grab_all_gold_and_kill_wumpus(self, screen, font):
+        text = font.render('Grab all Gold and ', True, RED)
+        textRect = text.get_rect()
+        textRect.center = (900, 200)
+        screen.blit(text, textRect)
+        text = font.render('Kill all Wumpus !!!', True, RED)
+        textRect = text.get_rect()
+        textRect.center = (900, 250)
+        screen.blit(text, textRect)
     def pit_detect(self, i, j):
         self.pit_discover[i][j] = True

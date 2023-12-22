@@ -2,7 +2,7 @@ from enum import Enum
 import copy
 import cell
 import knowledgeBase
-
+from settings import *
 
 class Action(Enum):
     """ Hướng di chuyển của Agent"""
@@ -80,7 +80,14 @@ class AgentBrain:
         self.path = []
         self.action_list = []
         self.score = 0
+        
+        ''' Đếm số gold và wumpus ban đầu có trong map '''
+        self.count_G_init = 0  
+        self.count_W_init = 0
 
+        ''' Dùng để kiểm tra xem đã ăn hết gold và giết hết wumpus chưa'''
+        self.count_W = 0
+        self.count_G = 0
         self.read_map(map_filename)
 
 
@@ -93,13 +100,22 @@ class AgentBrain:
         self.cell_matrix = [[None for _ in range(self.map_size)] for _ in range(self.map_size)]
         for ir in range(self.map_size):
             for ic in range(self.map_size):
+                # Count Wumpus and Gold
+                if raw_map[ir][ic] == 'W':
+                    self.count_W += 1   
+                if raw_map[ir][ic] == 'G':
+                    self.count_G += 1
+                
+                # Create cell
                 self.cell_matrix[ir][ic] = cell.Cell((ir, ic), self.map_size, raw_map[ir][ic])
                 if cell.Object.AGENT.value in raw_map[ir][ic]:
                     self.agent_cell = self.cell_matrix[ir][ic]
                     self.agent_cell.update_parent(self.cave_cell)
                     self.init_agent_cell = copy.deepcopy(self.agent_cell)
-
         file.close()
+        self.count_G_init = self.count_G
+        self.count_W_init = self.count_W   
+        
         self.init_cell_matrix = copy.deepcopy(self.cell_matrix)
 
 
@@ -135,7 +151,7 @@ class AgentBrain:
 
     def add_action(self, action):
         self.action_list.append(action)
-        print(action)
+        # print(action)
         self.append_event_to_output_file(action.name)
 
         if action == Action.TURN_LEFT:
@@ -148,37 +164,39 @@ class AgentBrain:
             pass
         elif action == Action.MOVE_FORWARD:
             self.score -= 10
-            print('Score: ' + str(self.score))
+            # print('Score: ' + str(self.score))
             self.append_event_to_output_file('Score: ' + str(self.score))
         elif action == Action.GRAB_GOLD:
             self.score += 100
-            print('Score: ' + str(self.score))
+            # print('Score: ' + str(self.score))
             self.append_event_to_output_file('Score: ' + str(self.score))
+            self.count_G -= 1
         elif action == Action.PERCEIVE_BREEZE:
             pass
         elif action == Action.PERCEIVE_STENCH:
             pass
         elif action == Action.SHOOT:
             self.score -= 100
-            print('Score: ' + str(self.score))
+            # print('Score: ' + str(self.score))
             self.append_event_to_output_file('Score: ' + str(self.score))
         elif action == Action.KILL_WUMPUS:
+            self.count_W -= 1
             pass
         elif action == Action.KILL_NO_WUMPUS:
             pass
         elif action == Action.BE_EATEN_BY_WUMPUS:
             self.score -= 10000
-            print('Score: ' + str(self.score))
+            # print('Score: ' + str(self.score))
             self.append_event_to_output_file('Score: ' + str(self.score))
         elif action == Action.FALL_INTO_PIT:
             self.score -= 10000
-            print('Score: ' + str(self.score))
+            # print('Score: ' + str(self.score))
             self.append_event_to_output_file('Score: ' + str(self.score))
         elif action == Action.KILL_ALL_WUMPUS_AND_GRAB_ALL_FOOD:
             pass
         elif action == Action.CLIMB_OUT_OF_THE_CAVE:
             self.score += 10
-            print('Score: ' + str(self.score))
+            # print('Score: ' + str(self.score))
             self.append_event_to_output_file('Score: ' + str(self.score))
         elif action == Action.DECTECT_PIT:
             pass
@@ -202,8 +220,7 @@ class AgentBrain:
             pass
         else:
             raise TypeError("Error: " + self.add_action.__name__)
-
-
+        
     def add_new_percepts_to_KB(self, cell1):
         adj_cell_list = cell1.get_adj_cell_list(self.cell_matrix)
 
@@ -286,9 +303,8 @@ class AgentBrain:
                 clause = [adj_cell.get_literal(cell.Object.WUMPUS, '-')]
                 self.KB.add_clause(clause)
 
-        print(self.KB.KB)
-        self.append_event_to_output_file(str(self.KB.KB))
-
+        # print(self.KB.KB)
+        # self.append_event_to_output_file(str(self.KB.KB))
 
     def turn_to(self, next_cell):
         if next_cell.map_pos[0] == self.agent_cell.map_pos[0]:
@@ -312,6 +328,11 @@ class AgentBrain:
 
 
     def backtracking_search(self):
+        # Check agent grab all of gold and kill all of wumpus.
+        if self.count_G == 0 and self.count_W == 0:
+            self.add_action(Action.KILL_ALL_WUMPUS_AND_GRAB_ALL_FOOD)
+            return 
+        
         # If there is a Pit, Agent dies.
         if self.agent_cell.exist_pit():
             self.add_action(Action.FALL_INTO_PIT)
@@ -325,7 +346,7 @@ class AgentBrain:
         # If there is Gold, Agent grabs Gold.
         if self.agent_cell.exist_gold():
             self.add_action(Action.GRAB_GOLD)
-            self.agent_cell.grab_gold()
+            # self.agent_cell.grab_gold()
 
         # If there is Breeze, Agent perceives Breeze.
         if self.agent_cell.exist_breeze():
@@ -368,9 +389,9 @@ class AgentBrain:
             if self.agent_cell.exist_stench():
                 valid_adj_cell: cell.Cell
                 for valid_adj_cell in valid_adj_cell_list:
-                    print("Infer: ", end='')
-                    print(valid_adj_cell.map_pos)
-                    self.append_event_to_output_file('Infer: ' + str(valid_adj_cell.map_pos))
+                    # print("Infer: ", end='')
+                    # print(valid_adj_cell.map_pos)
+                    # self.append_event_to_output_file('Infer: ' + str(valid_adj_cell.map_pos))
                     self.turn_to(valid_adj_cell)
 
                     # Infer Wumpus.
@@ -387,7 +408,7 @@ class AgentBrain:
                         self.add_action(Action.SHOOT)
                         self.add_action(Action.KILL_WUMPUS)
                         valid_adj_cell.kill_wumpus(self.cell_matrix, self.KB)
-                        self.append_event_to_output_file('KB: ' + str(self.KB.KB))
+                        # self.append_event_to_output_file('KB: ' + str(self.KB.KB))
 
                     # If we can not infer Wumpus.
                     else:
@@ -423,16 +444,16 @@ class AgentBrain:
                     adj_cell_list.remove(explored_cell)
 
                 for adj_cell in adj_cell_list:
-                    print("Try: ", end='')
-                    print(adj_cell.map_pos)
-                    self.append_event_to_output_file('Try: ' + str(adj_cell.map_pos))
+                    # print("Try: ", end='')
+                    # print(adj_cell.map_pos)
+                    # self.append_event_to_output_file('Try: ' + str(adj_cell.map_pos))
                     self.turn_to(adj_cell)
 
                     self.add_action(Action.SHOOT)
                     if adj_cell.exist_wumpus():
                         self.add_action(Action.KILL_WUMPUS)
                         adj_cell.kill_wumpus(self.cell_matrix, self.KB)
-                        self.append_event_to_output_file('KB: ' + str(self.KB.KB))
+                        # self.append_event_to_output_file('KB: ' + str(self.KB.KB))
 
                     if not self.agent_cell.exist_stench():
                         self.agent_cell.update_child_list([adj_cell])
@@ -443,9 +464,9 @@ class AgentBrain:
             if self.agent_cell.exist_breeze():
                 valid_adj_cell: cell.Cell
                 for valid_adj_cell in valid_adj_cell_list:
-                    print("Infer: ", end='')
-                    print(valid_adj_cell.map_pos)
-                    self.append_event_to_output_file('Infer: ' + str(valid_adj_cell.map_pos))
+                    # print("Infer: ", end='')
+                    # print(valid_adj_cell.map_pos)
+                    # self.append_event_to_output_file('Infer: ' + str(valid_adj_cell.map_pos))
                     self.turn_to(valid_adj_cell)
 
                     # Infer Pit.
@@ -497,16 +518,16 @@ class AgentBrain:
         # Move to all of the valid next cells sequentially.
         for next_cell in self.agent_cell.child_list:
             self.move_to(next_cell)
-            print("Move to: ", end='')
-            print(self.agent_cell.map_pos)
+            # print("Move to: ", end='')
+            # print(self.agent_cell.map_pos)
             self.append_event_to_output_file('Move to: ' + str(self.agent_cell.map_pos))
 
             if not self.backtracking_search():
                 return False
 
             self.move_to(pre_agent_cell)
-            print("Backtrack: ", end='')
-            print(pre_agent_cell.map_pos)
+            # print("Backtrack: ", end='')
+            # print(pre_agent_cell.map_pos)
             self.append_event_to_output_file('Backtrack: ' + str(pre_agent_cell.map_pos))
 
         return True
@@ -519,16 +540,16 @@ class AgentBrain:
 
         self.backtracking_search()
 
-        victory_flag = True
-        for cell_row in self.cell_matrix:
-            for cell in cell_row:
-                if cell.exist_gold() or cell.exist_wumpus():
-                    victory_flag = False
-                    break
-        if victory_flag:
-            self.add_action(Action.KILL_ALL_WUMPUS_AND_GRAB_ALL_FOOD)
+        # victory_flag = True
+        # for cell_row in self.cell_matrix:
+        #     for cell in cell_row:
+        #         if cell.exist_gold() or cell.exist_wumpus():
+        #             victory_flag = False
+        #             break
+        # if victory_flag:
+        #     self.add_action(Action.KILL_ALL_WUMPUS_AND_GRAB_ALL_FOOD)
 
         if self.agent_cell.parent == self.cave_cell:
             self.add_action(Action.CLIMB_OUT_OF_THE_CAVE)
 
-        return self.action_list, self.init_agent_cell, self.init_cell_matrix
+        return self.action_list, self.init_agent_cell, self.init_cell_matrix, self.count_G_init, self.count_W_init

@@ -8,9 +8,6 @@ class Gold:
         
         # Thay đổi kích thước của hình ảnh vàng để nó phù hợp với màn hình
         self.image = pygame.transform.scale(self.image, (300,300))
-        
-        # Đặt vị trí text vàng trên màn hình
-        self.pos = (900, 100)
 
     def grab_gold(self, screen, font):
         """Hiển thị thông báo vàng đã được tìm thấy và cập nhật điểm số trên màn hình."""
@@ -18,13 +15,13 @@ class Gold:
         # Tạo và vị trí cho dòng thông báo "You found a gold!!!"
         text = font.render('Gold is founded !!!', True, BLACK)
         textRect = text.get_rect()
-        textRect.center = self.pos
+        textRect.center = (900, 180)
         
         # Vẽ dòng thông báo trên màn hình
         screen.blit(text, textRect)
         
         # Hiển thị hình ảnh vàng tại vị trí cố định trên màn hình
-        screen.blit(self.image, (805, 200))
+        screen.blit(self.image, (805, 250))
         
         # Tạo và vị trí cho dòng thông báo "Score + 100"
         text = font.render('Score + 100', True, BLACK)
