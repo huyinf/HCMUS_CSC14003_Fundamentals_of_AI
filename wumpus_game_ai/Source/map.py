@@ -63,10 +63,10 @@ class Map:
     def agent_climb(self, screen, font):
         text = font.render('Climbed out !!!', True, RED)
         textRect = text.get_rect()
-        textRect.center = (900, 100)
+        textRect.center = (900, 200)
         screen.blit(text, textRect)
         text = font.render('Score + 10', True, RED)
-        textRect.center = (920, 150)
+        textRect.center = (920, 250)
         screen.blit(text, textRect)
     
     def agent_grab_all_gold_and_kill_wumpus(self, screen, font):
