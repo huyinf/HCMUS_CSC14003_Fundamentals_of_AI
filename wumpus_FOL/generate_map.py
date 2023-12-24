@@ -1,8 +1,11 @@
 import random
+import os
 
-size = 10
-nW = 10
-nP = 10
+parentDir = os.path.dirname(os.path.abspath(__file__))
+inputPath = os.path.join(parentDir,"input")
+size = 5
+nW = 3
+nP = 3
 nG = 5
 
 # object_adjObj pairs
@@ -105,7 +108,7 @@ def generate_maps(size:int,nW:int,nP:int,nG:int,cnt_maps:int):
     
     for i in range(cnt_maps):
         m = [["-" for _ in range(size)] for _ in range(size)]
-        m[0][0] = "A"
+        m[-1][0] = "A"
         # random wumpus
         random_objects(nW,"W",m)
         # random pit
@@ -114,8 +117,10 @@ def generate_maps(size:int,nW:int,nP:int,nG:int,cnt_maps:int):
         random_objects(nG,"G",m)
         # post-process
         post_process(m)
+        
+        filePath = os.path.join(inputPath,"input"+str(i)+".txt")
         # write map to file
-        map_to_file(m,"input"+str(i)+".txt")
+        map_to_file(m,filePath)
 
 
 # sample run
