@@ -12,7 +12,10 @@ signal_pairs = {'W':'S',
 
 opposite_dir_pairs = (('U','D'),('D','U'),('L','R'),('R','L'))
 
-
+'''
+shooting optimization:
+choose that direction the next move
+'''
 
 
 # FOL model
@@ -36,7 +39,7 @@ def FOLmodel(M,nG,nW):
     # empty and safe room
     K[len(M)-1][0] = 'E'
     
-    V[len(M)-1][0] = 1
+    # V[len(M)-1][0] = 1
     
     # exit - bottom left
     exit_pos = (len(M)-1,0)
@@ -102,7 +105,10 @@ def FOLmodel(M,nG,nW):
         
         # modify signal based on knowledge and map and visting times
         if V[x][y] == 0:
-            signal = M[x][y]
+            if K[x][y] != '':
+                signal = K[x][y]
+            else:
+                signal = M[x][y]
             
                 # get gold and modify signal
             if 'G' in signal:
@@ -113,17 +119,11 @@ def FOLmodel(M,nG,nW):
             signal = K[x][y]
 
 
-        # caught by wumpus or fall in pit  
-        if signal == 'W' or signal == 'P':
-            # no update if cell has been visited
-            if V[x][y] == 0:
-                update_knowledge(x_prev,y_prev,x,y,signal,K,V,M)
-
-            score -= 10000
-            state = 'die'
-            return results()
-
-        # if agent is still agent or game is still running
+        # mark empty unvisited room or gold-only is E as a safe room
+        if signal in ('-','','A'):
+            signal = 'E'
+            update_knowledge(x_prev,y_prev,x,y,signal,K,V,M)
+                # if agent is still agent or game is still running
         elif re.search('B|S',signal):
             # no update if cell has been visited
             if V[x][y] == 0:
@@ -132,11 +132,14 @@ def FOLmodel(M,nG,nW):
             # get adjacent cells of current cell to find and kill wumpus if possible
             adj_cells = list_of_moves(x,y,M,V,K)
             
-            # if there are still some wumpuses, kill them
+            # if there are still some wumpuses, kill them randomly
             if nW > 0:
-                for _,pos in adj_cells:
-                    nX,nY = pos
-                    # use knowledge to determine whether wumpus is in room
+                # for _,pos in adj_cells:
+                
+                nX,nY = max(adj_cells,key= lambda x: x[0])[1]
+                # use knowledge to determine whether wumpus is in room
+                # do not shoot in visited rooms
+                if V[nX][nY] == 0:
                     if K[nX][nY] in ('W'):
                         
                         # track actions for shooting
@@ -157,14 +160,30 @@ def FOLmodel(M,nG,nW):
                         # record shooting rooms
                         shoot_wumpus.append((nX,nY))
                         
-        # mark empty unvisited room is E as a safe room
-        elif signal in ('-'):
-            signal = 'E'
-            update_knowledge(x_prev,y_prev,x,y,signal,K,V,M)
+                        
+
+        # caught by wumpus or fall in pit  
+        elif signal == 'W' or signal == 'P':
+            # no update if cell has been visited
+            if V[x][y] == 0:
+                update_knowledge(x_prev,y_prev,x,y,signal,K,V,M)
+
+            score -= 10000
+            state = 'die'
+            return results()
+
+                        
         
         
         # update visiting times
         V[x][y] += 1
+        
+        # in case agent go back to visited rooms if there is danger
+        # and there is one unvisited room left on the next move
+        # random shoot for safety
+        
+        
+        
         
         
         # get all golds and kill all wumpuses
@@ -574,9 +593,9 @@ def check_out_of_wumpus():
 
 # input file & output file
 
-def report():
+def report(n_maps):
     
-    for i in range(10):
+    for i in range(n_maps):
         
         inputFile = f'input/input{i}.txt'
         outputFile = f'output/output{i}.txt'
@@ -595,9 +614,9 @@ def report():
 
 
 
+# cnt_maps = 5
 
-
-# report()
+# report(cnt_maps)
 
 inputFile = 'input/input0.txt'
 outputFile = 'output/output0.txt'

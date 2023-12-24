@@ -1,18 +1,48 @@
 import random
 import os
 
+'''
+setting for easy game:
+    adjacent rooms of first room of agent are wumpus or pit
+
+    room for wumpus and for pit are not adjacent
+    
+'''
 parentDir = os.path.dirname(os.path.abspath(__file__))
 inputPath = os.path.join(parentDir,"input")
 size = 5
 nW = 3
 nP = 3
 nG = 5
+cnt = 5
 
 # object_adjObj pairs
 pairs = {'W':'S','P':'B','G':None}
 
 # unique objects not in the same room with others
 uniques = ['W','P','A']
+
+not_adjacent_pairs = {'W':'P','P':'W','P':'A','W':'A'}
+
+# helper function to ignore adjacent cases
+def not_adjacent(object,x,y,M):
+    
+    if object == "G":
+        return True
+    
+    # up, down, left, right, up-left, up-right, down-left, down-right
+    dx = [-1,1,0,0,-1,-1,1,1]
+    dy = [0,0,-1,1,-1,1,-1,1]
+    
+    for i in range(8):
+        nX = x+dx[i]
+        nY = y+dy[i]
+        if valid_cell(nX,nY,M):
+            if M[nX][nY] != not_adjacent_pairs[object]:
+                return True
+            
+    return False
+    
 
 # check cell is inside map
 def valid_cell(x:int,y:int,m:list[list[str]]):
@@ -39,7 +69,7 @@ def random_objects(cnt: int,object: str, m: list[list[str]]):
     for i in range(cnt):
         x = random.randint(0,row-1)
         y = random.randint(0,col-1)
-        while m[x][y] != "-" and m[x][y] in uniques:
+        while m[x][y] != "-" and m[x][y] in uniques and not_adjacent(object,x,y,m) == False:
             x = random.randint(0,row-1)
             y = random.randint(0,col-1)
         
@@ -124,4 +154,4 @@ def generate_maps(size:int,nW:int,nP:int,nG:int,cnt_maps:int):
 
 
 # sample run
-generate_maps(size,nW,nP,nG,10)
+generate_maps(size,nW,nP,nG,cnt)
