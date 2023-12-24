@@ -1,17 +1,17 @@
 import heapq
 import re
+import os
 
 signal_pairs = {'W':'S',
                 'S':'W',
                 'B':'P',
                 'P':'B',
                 'BS':'PW',
+                'E':''
                 }
 
 opposite_dir_pairs = (('U','D'),('D','U'),('L','R'),('R','L'))
 
-# input file
-filename = './input.txt'
 
 
 
@@ -22,27 +22,33 @@ input:
     number of golds nG
     number of wumpus nW
 output:
-    path, score
+    state of game, number of iterations, left golds, left wumpuses, score, instruction list, path, shoot_wumpus list
 '''
 def FOLmodel(M,nG,nW):
     # knowledge
-    K = [[None for _ in range(len(row))] for row in M]
+    K = [['' for _ in range(len(row))] for row in M]
     # track visiting times
     V = [[0 for _ in range(len(row))] for row in M]
     
-    # entrance
-    start_pos = (0,0)
+    # entrance - bottom left
+    start_pos = (len(M)-1,0)
     
-    V[0][0] = 1
+    # empty and safe room
+    K[len(M)-1][0] = 'E'
     
-    # exit
-    exit_pos = (len(M)-1,len(M[0])-1)
+    V[len(M)-1][0] = 1
+    
+    # exit - bottom left
+    exit_pos = (len(M)-1,0)
+    
+    # state of game - win, die, out, loop
+    state = ''
 
     # record visited cells
     path = []
     
     # shoot lists
-    shoot = []
+    shoot_wumpus = []
     
     # instruction list
     '''
@@ -54,9 +60,6 @@ def FOLmodel(M,nG,nW):
     # initial direction
     direction = 'R'
     
-    # record list of keyboards of changing direction
-    # keys = []
-    
     # get score and score_list for game visualization
     scores_list = []
     
@@ -66,89 +69,114 @@ def FOLmodel(M,nG,nW):
     prev_pos = start_pos
     curr_pos = start_pos
     
+    k = 100
+    iterations = 0
     def results():
-        print('knowledge:',K)
-        # print(V)      
-        print('path:',path)
-        # print('list of keyboards: ',keys)
-        # print(scores_list)
-        print('score:',score)
-        print('left wumpuses:',nW)
-        print('left golds:',nG)
-        print('instruction: ',actions)
-        
+        return state,iterations,nG,nW,score,actions,path,shoot_wumpus
+    
+        # print('knowledge:',K)
+        # print("Visited times:",V)      
+        # print('path:',path)
+        # print('score:',score)
+        # print('left wumpuses:',nW)
+        # print('left golds:',nG)
+        # print('instruction: ',actions)
+        # print("number of iterations: ",100-k)
     
     # run until win or die
-    k = 10
     while k >= 0:
         k -= 1
-
-        # print('curr: ',curr_pos)
+        iterations += 1
         
+        # update path and score_list 
         path.append(curr_pos)
         scores_list.append(score)
+        
+        # # climb out of the cave
+        # if curr_pos == exit_pos:
+        #     results()
+
 
         x_prev,y_prev = prev_pos        
-        x,y = curr_pos
-        signal = M[x][y]
+        x,y = curr_pos        
+        
+        # modify signal based on knowledge and map and visting times
+        if V[x][y] == 0:
+            signal = M[x][y]
+            
+                # get gold and modify signal
+            if 'G' in signal:
+                # if map is out of gold, no action
+                nG = max(nG-1,0)
+                signal = signal.replace('G','')
+        else:
+            signal = K[x][y]
+
+
+        # caught by wumpus or fall in pit  
+        if signal == 'W' or signal == 'P':
+            # no update if cell has been visited
+            if V[x][y] == 0:
+                update_knowledge(x_prev,y_prev,x,y,signal,K,V,M)
+
+            score -= 10000
+            state = 'die'
+            return results()
+
+        # if agent is still agent or game is still running
+        elif re.search('B|S',signal):
+            # no update if cell has been visited
+            if V[x][y] == 0:
+                update_knowledge(x_prev,y_prev,x,y,signal,K,V,M)
+            
+            # get adjacent cells of current cell to find and kill wumpus if possible
+            adj_cells = list_of_moves(x,y,M,V,K)
+            
+            # if there are still some wumpuses, kill them
+            if nW > 0:
+                for _,pos in adj_cells:
+                    nX,nY = pos
+                    # use knowledge to determine whether wumpus is in room
+                    if K[nX][nY] in ('W'):
+                        
+                        # track actions for shooting
+                        rotation,new_direction = rotate(direction,x,y,nX,nY)
+                        actions.append(rotation)
+                        direction = new_direction
+                        actions.append('S')
+                        
+                        # check if wumpus is killed
+                        killed = kill(nX,nY,K,M)
+                        
+                        if killed:
+                            # decrease the number of wumpuses if possible
+                            nW = max(nW-1,0)
+
+                        # shoot an arrow
+                        score -= 100
+                        # record shooting rooms
+                        shoot_wumpus.append((nX,nY))
+                        
+        # mark empty unvisited room is E as a safe room
+        elif signal in ('-'):
+            signal = 'E'
+            update_knowledge(x_prev,y_prev,x,y,signal,K,V,M)
+        
+        
+        # update visiting times
+        V[x][y] += 1
         
         
         # get all golds and kill all wumpuses
         if nG == 0 and nW == 0:
-            print('state: win')
-            results()
-            return path,score
-
-        # caught by wumpus or fall in pit  
-        if signal == 'W' or signal == 'P':
-            update_knowledge(x_prev,y_prev,x,y,signal,K,V)
-            score -= 10000
-            print('state: die')
-            results()
-            return path,score
-
-        # # climb out of the cave
-        # if curr_pos == exit_pos:
-        #     print('state: out')
-        #     results()
-        #     return path,score
-        
-        # get gold and modify signal
-        if 'G' in signal:
-            nG -= 1
-            signal = signal.replace('G','')
-
-        # if agent is still agent or game is still running
-        if re.search('B|S',signal):
-            update_knowledge(x_prev,y_prev,x,y,signal,K,V)
-            
-            # get adjacent cells of current cell to find and kill wumpus if possible
-            adj_cells = list_of_moves(x,y,M,V)
-            
-            for _,pos in adj_cells:
-                nX,nY = pos
-                # use knowledge to determine whether wumpus is in room
-                if K[nX][nY] in ('W'):
-                    
-                    rotation,new_direction = rotate(direction,x,y,nX,nY)
-                    actions.append(rotation)
-                    direction = new_direction
-                    actions.append('S')
-                    kill(nX,nY,K)
-                    # decrease the number of wumpuses
-                    nW -= 1
-                    # shoot an arrow
-                    score -= 100
-                     
-        # mark empty visited room is E as a safe room
-        if signal == '-':
-            K[x][y] = 'E'
+            # print('state: win')
+            state = 'win'
+            return results()
+            # return path,score    
         
         
         # random good moves
-        moves = list_of_moves(x,y,M,V)
-
-        # print(f'{k}: ',moves)
+        moves = list_of_moves(x,y,M,V,K)
         
         # update previous position
         prev_pos = curr_pos
@@ -165,14 +193,12 @@ def FOLmodel(M,nG,nW):
         direction = new_direction
         
         score -= 10
-        
-        # update visiting times
-        x,y = curr_pos
-        V[x][y] += 1
+
     
-    print("out loop")
-    results()
-    return path,score
+    # if game cannot end in 100 iterations, it is a loop 
+    state = 'loop'
+    return results()
+
 
 # get list of the next possible moves for agent
 '''
@@ -180,10 +206,11 @@ input:
     x,y - position of cell
     M   - map of game
     V   - matrix of visited times
+    K   - knowledge of agent
 output:
-    a list of possible moves ordered by visited times (min_heap) for agent
+    a list of possible moves ordered by visited times and knowledge (min_heap) for agent
 '''
-def list_of_moves(x,y,M,V):
+def list_of_moves(x,y,M,V,K):
     moves = []
     
     # (0,0) is top left in python, but (0,0) is bottom left in game
@@ -193,11 +220,18 @@ def list_of_moves(x,y,M,V):
     # horizontal
     dy = [0,0,-1,1]
     
+    
     for i in range(len(dx)):
-        new_x,new_y = x+dx[i],y+dy[i]
-        
+        new_x,new_y = x+dx[i],y+dy[i]        
+                
         if valid_cell(new_x,new_y,M):
-            heapq.heappush(moves,(V[new_x][new_y],(new_x,new_y)))
+            # add weight to cell based on visited times and knowledge
+            weight = V[new_x][new_y]
+            
+            if K[new_x][new_y] in ('W','P'):
+                weight += 10
+            
+            heapq.heappush(moves,(weight,(new_x,new_y)))
             
     # print(moves)
     return moves
@@ -215,27 +249,30 @@ output:
 def move(list_moves,M):
     
     res = None
-    backup = []
+    # backup = []
     
-    # get the "best" cell
-    # smallest visiting times
-    # not Pit or Wumpus
-    while len(list_moves) > 0:
+    # # get the "best" cell
+    # # smallest visiting times
+    # # not Pit or Wumpus
+    # while len(list_moves) > 0:
         
-        item = heapq.heappop(list_moves)
+    #     item = heapq.heappop(list_moves)
         
-        pos = item[1]
+    #     pos = item[1]
         
-        x,y = pos
+    #     x,y = pos
         
-        if M[x][y] not in ('P','W'):
-            res = pos
-            return res
-        else:
-            heapq.heappush(backup,item)
+    #     if M[x][y] not in ('P','W'):
+    #         res = pos
+    #         return res
+    #     else:
+    #         heapq.heappush(backup,item)
         
-    # return any dead cell
-    return heapq.heappop(backup)[1]
+    # # return any dead cell
+    # return heapq.heappop(backup)[1]
+    
+    res = heapq.heappop(list_moves)[1]
+    return res
   
   
 # valid cell is not outside of map
@@ -259,6 +296,36 @@ input:
 output:
     updated knowledge of agent based on FOL
 '''
+# def inference(x,y,val,K):
+
+#     # get the predicted value of current cell
+#     # use the current value of current cell to make inference
+    
+#     prev = K[x][y]
+#     curr = val
+    
+#     if prev == curr:
+#         pass
+#     elif prev == '':
+#         K[x][y] = curr
+#     elif prev == 'PW' and curr in ('P','W'):
+#         K[x][y] = curr
+    
+#     elif prev in ('P','W') and curr == 'PW':
+#         K[x][y] = prev
+        
+#     elif prev in ('S','B','P','W') and curr in ('E','BS'):
+#         K[x][y] = curr
+        
+#     elif (prev,curr) == ('P','W') or (prev,curr) == ('W','P'):
+#         K[x][y] = 'E'
+        
+#     elif curr in ('B','S'):
+#         if prev not in ('B','S'):
+#             K[x][y] = curr
+#         else:
+#             K[x][y] = 'BS'
+
 def inference(x,y,val,K):
 
     # get the predicted value of current cell
@@ -267,22 +334,35 @@ def inference(x,y,val,K):
     prev = K[x][y]
     curr = val
     
+    # same value --> real knowledge
     if prev == curr:
         pass
-    elif prev == None:
+    # new knowledge --> real ??
+    elif prev == '':
         K[x][y] = curr
+    # any previous knowledge 
+    # --> real knowledge because adjacent cells of E are not wumpus or pit
+    elif re.search('P|W',prev) and curr == '':
+        K[x][y] = curr
+    # comfirm of pit or wumpus because wumpus and pit are not in the same cell
     elif prev == 'PW' and curr in ('P','W'):
         K[x][y] = curr
-    
     elif prev in ('P','W') and curr == 'PW':
         K[x][y] = prev
-        
-    elif prev in ('S','B','P','W') and curr in ('E','BS'):
+    # any previous knowledge
+    # --> E is stronger than other knowledge
+    elif curr == 'E':
         K[x][y] = curr
-        
+    # BS is stronger than B or S, but weaker than E
+    # and B or S is not in than same cell with W or P
+    elif curr == 'BS':
+        K[x][y] = curr
+    # W and P can be in the same cell
     elif (prev,curr) == ('P','W') or (prev,curr) == ('W','P'):
         K[x][y] = 'E'
-        
+    # if previous knowledge is not B or S,
+    # and current knowledge is B or S (based on wumpus or pit)
+     
     elif curr in ('B','S'):
         if prev not in ('B','S'):
             K[x][y] = curr
@@ -301,7 +381,7 @@ input:
 output:
     None (apply inference to update knowledge)
 '''
-def update_knowledge(x_prev,y_prev,x_curr,y_curr,val,K,V):
+def update_knowledge(x_prev,y_prev,x_curr,y_curr,val,K,V,M):
     
     # (0,0) is top left in python, but (0,0) is bottom left in game
     # up, down, left, right
@@ -311,7 +391,7 @@ def update_knowledge(x_prev,y_prev,x_curr,y_curr,val,K,V):
     dy = [0,0,-1,1]
 
     # if M[x][y] has not reached, assign new knowledge about it and make predictions
-    if K[x_curr][y_curr] is None:
+    if K[x_curr][y_curr] == '':
         # assign new value
         K[x_curr][y_curr] = val
         
@@ -327,8 +407,8 @@ def update_knowledge(x_prev,y_prev,x_curr,y_curr,val,K,V):
                 if V[x][y] == 0:
                     inference(x,y,signal_pairs[val],K)
                     
-    # apply inference on non-empty cells
-    else:
+    # apply inference on non-empty cells and non-visited cells
+    elif V[x_curr][y_curr] == 0:
         inference(x_curr,y_curr,val,K)
 
 
@@ -370,13 +450,13 @@ def build_map(filename):
 input:
     path,score
 output:
-    file at path './output.txt'
+    file at path '../output.txt'
 '''
 
-def write_ouput(path,score):
+def write_ouput(path,score,filename):
     
     
-    with open('output.txt','w') as f:
+    with open(filename,'w') as f:
         for pos in path:    
             f.write(f"({pos[0]},{pos[1]})\n")
         f.write(str(score))
@@ -445,14 +525,19 @@ def rotate(direction,x,y,x_next,y_next):
 '''
 input:
     x,y - position of wumpus
-    K   - knowledge of agent
+    M   - map
 output:
-    update knowledge
+    update knowledge if wumpus is killed
+    or return false if there is no wumpus at (x,y)
 '''
-def kill(x,y,K):
+def kill(x,y,K,M):
     # update information for cell M[x,y] as empty/safe room
-    K[x][y] = 'E'
-    inference(x,y,'E',K)
+    if M[x][y] == 'W':
+        K[x][y] = 'E'
+        inference(x,y,'E',K)
+        return True
+    
+    return False
     
     
 # transform map from top-left-rooted to bottom-left-rooted
@@ -487,17 +572,40 @@ def check_out_of_wumpus():
 
 
 
-M,nW,nG = build_map(filename)
+# input file & output file
 
-print('Map:',M)
+def report():
+    
+    for i in range(10):
+        
+        inputFile = f'input/input{i}.txt'
+        outputFile = f'output/output{i}.txt'
+        parentDir = os.path.dirname(os.path.abspath(__file__))
+        inputPath = os.path.join(parentDir, inputFile)
+        outputPath = os.path.join(parentDir, outputFile)
+        
+        M,nW,nG = build_map(inputPath)
 
-M_hat = transform(M)
+        state,iterations,nG,nW,score,actions,path,shoot_wumpus = FOLmodel(M,nG,nW)
+        print(state,'\t\t',iterations,'\t\t',nG,'\t\t',nW,'\t\t',score)
+        # write_ouput(path,score,outputPath)
+        
+               
 
-print(M_hat)
 
-# print(nW,nG)
 
-# res = FOLmodel(M,nG,nW)
-# path = res[0]
-# score = res[1]
-# write_ouput(path,score)
+
+
+
+# report()
+
+inputFile = 'input/input0.txt'
+outputFile = 'output/output0.txt'
+parentDir = os.path.dirname(os.path.abspath(__file__))
+inputPath = os.path.join(parentDir, inputFile)
+outputPath = os.path.join(parentDir, outputFile)
+
+M,nW,nG = build_map(inputPath)
+
+state,iterations,nG,nW,score,actions,path,shoot_wumpus = FOLmodel(M,nG,nW)
+print(state,'\t\t',iterations,'\t\t',nG,'\t',nW,'\t',score)
