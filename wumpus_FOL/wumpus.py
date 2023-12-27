@@ -100,23 +100,28 @@ def FOLmodel(M,nG,nW):
         #     results()
 
 
-        x_prev,y_prev = prev_pos        
+        x_prev,y_prev = prev_pos   
+        # update previous position
+        prev_pos = curr_pos
+             
         x,y = curr_pos        
         
+        signal = M[x][y]
         # modify signal based on knowledge and map and visting times
-        if V[x][y] == 0:
-            if K[x][y] != '':
-                signal = K[x][y]
-            else:
-                signal = M[x][y]
-            
-                # get gold and modify signal
+        # if agent has real knowledge about current cell, use it
+        if V[x][y] != 0:
+            signal = K[x][y]
+        # if agent has no knowledge about current cell, but agent inferenced it as E
+        # use it
+        elif K[x][y] == 'E':
+            signal = 'E'
+        # other case, leave it as it is
+        else:
+            # get gold and modify signal
             if 'G' in signal:
                 # if map is out of gold, no action
                 nG = max(nG-1,0)
                 signal = signal.replace('G','')
-        else:
-            signal = K[x][y]
 
 
         # mark empty unvisited room or gold-only is E as a safe room
@@ -124,49 +129,20 @@ def FOLmodel(M,nG,nW):
             signal = 'E'
             update_knowledge(x_prev,y_prev,x,y,signal,K,V,M)
                 # if agent is still agent or game is still running
-        elif re.search('B|S',signal):
+        elif signal in ('S','BS'):
             # no update if cell has been visited
-            if V[x][y] == 0:
-                update_knowledge(x_prev,y_prev,x,y,signal,K,V,M)
+            # if V[x][y] == 0:
+            update_knowledge(x_prev,y_prev,x,y,signal,K,V,M)
             
-            # get adjacent cells of current cell to find and kill wumpus if possible
-            adj_cells = list_of_moves(x,y,M,V,K)
-            
-            # if there are still some wumpuses, kill them randomly
-            if nW > 0:
-                # for _,pos in adj_cells:
-                
-                nX,nY = max(adj_cells,key= lambda x: x[0])[1]
-                # use knowledge to determine whether wumpus is in room
-                # do not shoot in visited rooms
-                if V[nX][nY] == 0:
-                    if K[nX][nY] in ('W'):
-                        
-                        # track actions for shooting
-                        rotation,new_direction = rotate(direction,x,y,nX,nY)
-                        actions.append(rotation)
-                        direction = new_direction
-                        actions.append('S')
-                        
-                        # check if wumpus is killed
-                        killed = kill(nX,nY,K,M)
-                        
-                        if killed:
-                            # decrease the number of wumpuses if possible
-                            nW = max(nW-1,0)
-
-                        # shoot an arrow
-                        score -= 100
-                        # record shooting rooms
-                        shoot_wumpus.append((nX,nY))
-                        
-                        
-
+              
+        elif signal == 'B':
+            # if V[x][y] == 0:
+            update_knowledge(x_prev,y_prev,x,y,signal,K,V,M)
         # caught by wumpus or fall in pit  
         elif signal == 'W' or signal == 'P':
             # no update if cell has been visited
-            if V[x][y] == 0:
-                update_knowledge(x_prev,y_prev,x,y,signal,K,V,M)
+            # if V[x][y] == 0:
+            update_knowledge(x_prev,y_prev,x,y,signal,K,V,M)
 
             score -= 10000
             state = 'die'
@@ -183,8 +159,41 @@ def FOLmodel(M,nG,nW):
         # random shoot for safety
         
         
+        # get adjacent cells of current cell to find and kill wumpus if possible
+        adj_cells = list_of_moves(x,y,M,V,K)
         
-        
+        # if there are still some wumpuses, kill them randomly
+        if nW > 0:
+            # for _,pos in adj_cells:
+            
+            nX,nY = max(adj_cells,key= lambda x: x[0])[1]
+            # use knowledge to determine whether wumpus is in room
+            # do not shoot in visited rooms
+            if V[nX][nY] == 0:
+                if K[nX][nY] in ('W'):
+                    
+                    # track actions for shooting
+                    rotation,new_direction = rotate(direction,x,y,nX,nY)
+                    actions.append(rotation)
+                    direction = new_direction
+                    actions.append('S')
+                    
+                    # check if wumpus is killed
+                    killed = kill(nX,nY,K,M)
+                    
+                    if killed:
+                        # decrease the number of wumpuses if possible
+                        nW = max(nW-1,0)
+
+                    # shoot an arrow
+                    score -= 100
+                    # record shooting rooms
+                    shoot_wumpus.append((nX,nY))
+    
+                # set this cell as the next move
+                curr_pos = (nX,nY)
+                
+    
         
         # get all golds and kill all wumpuses
         if nG == 0 and nW == 0:
@@ -194,14 +203,14 @@ def FOLmodel(M,nG,nW):
             # return path,score    
         
         
-        # random good moves
-        moves = list_of_moves(x,y,M,V,K)
+        # if there is no updation in current position, choose another random move
+        if curr_pos == prev_pos:
         
-        # update previous position
-        prev_pos = curr_pos
-        
-        # choose the "best" move
-        curr_pos = move(moves,M)
+            # random good moves
+            moves = list_of_moves(x,y,M,V,K)
+            
+            # choose the "best" move
+            curr_pos = move(moves,M)
         
         # change direction for new move
         '''
@@ -247,8 +256,16 @@ def list_of_moves(x,y,M,V,K):
             # add weight to cell based on visited times and knowledge
             weight = V[new_x][new_y]
             
-            if K[new_x][new_y] in ('W','P'):
-                weight += 10
+            if K[new_x][new_y] == 'W':
+                weight += 3
+            # elif K[new_x][new_y] == 'E':
+            #     weight += 50
+            # # N/A knowledge
+            # elif K[new_x][new_y] == '':
+            #     weight += 30
+            # dead case
+            elif K[new_x][new_y] == 'P':
+                weight += 5
             
             heapq.heappush(moves,(weight,(new_x,new_y)))
             
@@ -410,7 +427,7 @@ def update_knowledge(x_prev,y_prev,x_curr,y_curr,val,K,V,M):
     dy = [0,0,-1,1]
 
     # if M[x][y] has not reached, assign new knowledge about it and make predictions
-    if K[x_curr][y_curr] == '':
+    if V[x_curr][y_curr] == 0:
         # assign new value
         K[x_curr][y_curr] = val
         
@@ -427,8 +444,8 @@ def update_knowledge(x_prev,y_prev,x_curr,y_curr,val,K,V,M):
                     inference(x,y,signal_pairs[val],K)
                     
     # apply inference on non-empty cells and non-visited cells
-    elif V[x_curr][y_curr] == 0:
-        inference(x_curr,y_curr,val,K)
+    # elif V[x_curr][y_curr] == 0:
+    #     inference(x_curr,y_curr,val,K)
 
 
 # read from input file and build map

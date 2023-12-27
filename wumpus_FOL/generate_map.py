@@ -1,5 +1,6 @@
 import random
 import os
+import re
 
 '''
 setting for easy game:
@@ -10,10 +11,11 @@ setting for easy game:
 '''
 parentDir = os.path.dirname(os.path.abspath(__file__))
 inputPath = os.path.join(parentDir,"input")
-size = 5
-nW = 3
+# default parameters
+size = 10
+nW = 4
 nP = 3
-nG = 5
+nG = 9
 cnt = 5
 
 # object_adjObj pairs
@@ -22,7 +24,9 @@ pairs = {'W':'S','P':'B','G':None}
 # unique objects not in the same room with others
 uniques = ['W','P','A']
 
-not_adjacent_pairs = {'W':'P','P':'W','P':'A','W':'A'}
+not_adjacent_pairs = {'W':['P','A'],
+                      'P':['W','A'],
+                      }
 
 # helper function to ignore adjacent cases
 def not_adjacent(object,x,y,M):
@@ -38,7 +42,7 @@ def not_adjacent(object,x,y,M):
         nX = x+dx[i]
         nY = y+dy[i]
         if valid_cell(nX,nY,M):
-            if M[nX][nY] != not_adjacent_pairs[object]:
+            if M[nX][nY] not in not_adjacent_pairs[object]:
                 return True
             
     return False
@@ -76,7 +80,7 @@ def random_objects(cnt: int,object: str, m: list[list[str]]):
         if object == "G":
             if m[x][y] == "-":
                 m[x][y] = object
-            else:
+            elif re.search('B|S',m[x][y]):
                 m[x][y] += object
             # continue
         else:
@@ -134,7 +138,7 @@ input:
 output:
     desired files
 '''
-def generate_maps(size:int,nW:int,nP:int,nG:int,cnt_maps:int):
+def generate_maps(size:int = size,nW:int = nW,nP:int = nP,nG:int = nG,cnt_maps:int = cnt):
     
     for i in range(cnt_maps):
         m = [["-" for _ in range(size)] for _ in range(size)]
@@ -153,5 +157,5 @@ def generate_maps(size:int,nW:int,nP:int,nG:int,cnt_maps:int):
         map_to_file(m,filePath)
 
 
-# sample run
-generate_maps(size,nW,nP,nG,cnt)
+# # sample run
+# generate_maps(size,nW,nP,nG,cnt)
