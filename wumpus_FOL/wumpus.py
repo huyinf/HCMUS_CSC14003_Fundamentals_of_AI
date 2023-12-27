@@ -1,6 +1,9 @@
+from generate_map import *
+
 import heapq
 import re
 import os
+import shutil
 
 signal_pairs = {'W':'S',
                 'S':'W',
@@ -11,11 +14,6 @@ signal_pairs = {'W':'S',
                 }
 
 opposite_dir_pairs = (('U','D'),('D','U'),('L','R'),('R','L'))
-
-'''
-shooting optimization:
-choose that direction the next move
-'''
 
 
 # FOL model
@@ -28,8 +26,8 @@ output:
     state of game, number of iterations, left golds, left wumpuses, score, instruction list, path, shoot_wumpus list
 '''
 def FOLmodel(M,nG,nW):
-    # knowledge
-    K = [['' for _ in range(len(row))] for row in M]
+    # knowledge: list of signals
+    K = [[set() for _ in range(len(row))] for row in M]
     # track visiting times
     V = [[0 for _ in range(len(row))] for row in M]
     
@@ -37,9 +35,8 @@ def FOLmodel(M,nG,nW):
     start_pos = (len(M)-1,0)
     
     # empty and safe room
-    K[len(M)-1][0] = 'E'
-    
-    # V[len(M)-1][0] = 1
+    K[len(M)-1][0].update(['A','V'])
+    V[len(M)-1][0] = 1
     
     # exit - bottom left
     exit_pos = (len(M)-1,0)
@@ -48,6 +45,9 @@ def FOLmodel(M,nG,nW):
     state = ''
 
     # record visited cells
+    pos_list = []
+    
+    # record path, not include cells that agent shoots more than once
     path = []
     
     # shoot lists
@@ -63,19 +63,19 @@ def FOLmodel(M,nG,nW):
     # initial direction
     direction = 'R'
     
-    # get score and score_list for game visualization
+    
+    # get score and scores_list for game visualization
     scores_list = []
     
     score = 0
     
-    # record current and previous position in while loop
-    prev_pos = start_pos
+    # # record current position in while loop
     curr_pos = start_pos
     
-    k = 100
+    k = 1000
     iterations = 0
     def results():
-        return state,iterations,nG,nW,score,actions,path,shoot_wumpus
+        return state,iterations,nG,nW,score,actions,path,pos_list,shoot_wumpus
     
         # print('knowledge:',K)
         # print("Visited times:",V)      
@@ -86,161 +86,401 @@ def FOLmodel(M,nG,nW):
         # print('instruction: ',actions)
         # print("number of iterations: ",100-k)
     
-    # run until win or die
-    while k >= 0:
-        k -= 1
+    
+    # run until win or die or out
+    while True:
         iterations += 1
         
-        # update path and score_list 
-        path.append(curr_pos)
-        scores_list.append(score)
-        
-        # # climb out of the cave
-        # if curr_pos == exit_pos:
-        #     results()
-
-
-        x_prev,y_prev = prev_pos   
-        # update previous position
-        prev_pos = curr_pos
+        # k -= 1
+        # use for report
+        if iterations >= k:
+            iterations -= 1
+            break
              
         x,y = curr_pos        
         
         signal = M[x][y]
-        # modify signal based on knowledge and map and visting times
-        # if agent has real knowledge about current cell, use it
-        if V[x][y] != 0:
-            signal = K[x][y]
-        # if agent has no knowledge about current cell, but agent inferenced it as E
-        # use it
-        elif K[x][y] == 'E':
-            signal = 'E'
-        # other case, leave it as it is
-        else:
-            # get gold and modify signal
-            if 'G' in signal:
+        
+        # skip visited cells
+        if 'V' not in K[x][y]:
+            
+            # update signal of unvisited cells
+            K[x][y].update(signal)
+            # stupid defined logic leads this shit code
+            remove_conflict(x,y,K)
+            # check dead case: W or P in signals
+            if 'W' in K[x][y] or 'P' in K[x][y]:
+                # if W or P in current cell, dead
+                state = 'die'
+                score -= 10000
+                scores_list.append(score)
+                return results()
+            
+            # if agent is still alive and game is still running
+            
+            # regardless of knowledge, update knowledge with new information
+            if 'G' in K[x][y]:
                 # if map is out of gold, no action
                 nG = max(nG-1,0)
-                signal = signal.replace('G','')
+                K[x][y].remove('G')
+                # gold is not in same room with wumpus or pit
+                K[x][y].update(['-P','-W'])
 
-
-        # mark empty unvisited room or gold-only is E as a safe room
-        if signal in ('-','','A'):
-            signal = 'E'
-            update_knowledge(x_prev,y_prev,x,y,signal,K,V,M)
-                # if agent is still agent or game is still running
-        elif signal in ('S','BS'):
-            # no update if cell has been visited
-            # if V[x][y] == 0:
-            update_knowledge(x_prev,y_prev,x,y,signal,K,V,M)
-            
-              
-        elif signal == 'B':
-            # if V[x][y] == 0:
-            update_knowledge(x_prev,y_prev,x,y,signal,K,V,M)
-        # caught by wumpus or fall in pit  
-        elif signal == 'W' or signal == 'P':
-            # no update if cell has been visited
-            # if V[x][y] == 0:
-            update_knowledge(x_prev,y_prev,x,y,signal,K,V,M)
-
-            score -= 10000
-            state = 'die'
-            return results()
-
-                        
+            # process signals of current cell for adjacent cells
+            update_kb(K[x][y],x,y,M,K)
+            # update current cell as visited
+            K[x][y].update(['V'])
         
+        # record visited times of cells
+        # if last action was shooting, no increase
+        if len(actions) > 0 and actions[-1] != 'S': # or == 'F'
+            V[x][y] += 1
+        # print(K)
         
-        # update visiting times
-        V[x][y] += 1
-        
-        # in case agent go back to visited rooms if there is danger
-        # and there is one unvisited room left on the next move
-        # random shoot for safety
-        
-        
-        # get adjacent cells of current cell to find and kill wumpus if possible
-        adj_cells = list_of_moves(x,y,M,V,K)
-        
-        # if there are still some wumpuses, kill them randomly
-        if nW > 0:
-            # for _,pos in adj_cells:
-            
-            nX,nY = max(adj_cells,key= lambda x: x[0])[1]
-            # use knowledge to determine whether wumpus is in room
-            # do not shoot in visited rooms
-            if V[nX][nY] == 0:
-                if K[nX][nY] in ('W'):
-                    
-                    # track actions for shooting
-                    rotation,new_direction = rotate(direction,x,y,nX,nY)
-                    actions.append(rotation)
-                    direction = new_direction
-                    actions.append('S')
-                    
-                    # check if wumpus is killed
-                    killed = kill(nX,nY,K,M)
-                    
-                    if killed:
-                        # decrease the number of wumpuses if possible
-                        nW = max(nW-1,0)
-
-                    # shoot an arrow
-                    score -= 100
-                    # record shooting rooms
-                    shoot_wumpus.append((nX,nY))
-    
-                # set this cell as the next move
-                curr_pos = (nX,nY)
-                
-    
-        
+        # make next action: shoot or move
+        (rotation,new_direction),action = new_action(x,y,M,K,V,direction)
+        # check state of agent
         # get all golds and kill all wumpuses
         if nG == 0 and nW == 0:
-            # print('state: win')
             state = 'win'
             return results()
-            # return path,score    
         
-        
-        # if there is no updation in current position, choose another random move
-        if curr_pos == prev_pos:
-        
-            # random good moves
-            moves = list_of_moves(x,y,M,V,K)
-            
-            # choose the "best" move
-            curr_pos = move(moves,M)
-        
-        # change direction for new move
-        '''
-        '''
-        rotation,new_direction = rotate(direction,x,y,curr_pos[0],curr_pos[1])
+        # if game is still running, update action
         actions.append(rotation)
-        actions.append('F')
-        direction = new_direction
+        actions.append(action)
         
+        # if agent shoots, preserve old direction and shoot
+        if action == 'S':
+            new_pos = new_move(x,y,M,new_direction)
+            if kill_wumpus(new_pos[0],new_pos[1],M,K) == True:
+                nW = max(nW-1,0)
+            # record shooting positions
+            shoot_wumpus.append(new_pos)
+            # update score after shooting
+            score -= 100
+            scores_list.append(score)
+            
+        # if agent moves, get new direction and make move
+        direction = new_direction
+        if action == 'F':
+            # if moving but not shooting
+            curr_pos = new_move(x,y,M,direction)
+            
         score -= 10
+        scores_list.append(score)
+        
+        # update path and record visited cells
+        pos_list.append(curr_pos)
+    
+        if path == [] or path[-1] != curr_pos:
+            path.append(curr_pos)
 
+        # more optimal design, but not implemented:
+        # if agent can not find more optimal move, agent proactively finds the exit postion to end game
+        
+        # climb out of the cave
+        if len(actions) > 0 and actions[-1] == 'F' and direction == 'L' and curr_pos == exit_pos:
+            state = 'out'
+            # a helper function for this case, not implemented
+            return results()
     
     # if game cannot end in 100 iterations, it is a loop 
     state = 'loop'
     return results()
 
 
-# get list of the next possible moves for agent
 '''
+remove confict signals
 input:
+    pair of conflict signals
+    K   - knowledge
     x,y - position of cell
-    M   - map of game
-    V   - matrix of visited times
-    K   - knowledge of agent
-output:
-    a list of possible moves ordered by visited times and knowledge (min_heap) for agent
+ouput:
+    remove - positive signal
 '''
-def list_of_moves(x,y,M,V,K):
-    moves = []
+def helper(a,b,x,y,K):
+    a_exists = a in K[x][y]
+    b_exists = b in K[x][y]
     
+    if a_exists and b_exists:
+        K[x][y].remove(a)
+
+
+def remove_conflict(x,y,K):
+    a_list = ['S','B','W','P']
+    b_list = ['-S','-B','-W','-P']
+    
+    for a,b in zip(a_list,b_list):
+        helper(a,b,x,y,K)
+     
+        
+'''
+update knowledge with new information
+input:
+    sig_list   - list of signals of current cell
+    x,y - position of cell
+    K   - knowledge of agent
+    # V   - matrix of visited times (maybe no use)
+    M  - map of game
+output:
+    updated knowledge of agent based on new information
+'''
+def update_kb(sig_list,x,y,M,K):
+    
+    if 'A' in sig_list or '-' in sig_list:
+        # sig_list.clear()
+        K[x][y].update(['-P','-W','-S','-B'])
+        if '-' in sig_list:
+            K[x][y].remove('-')
+            
+    # update signals for current cell
+    if 'S' not in K[x][y]:
+        K[x][y].update(['-S'])
+    if 'B' not in K[x][y]:
+        K[x][y].update(['-B'])
+    if 'W' in K[x][y]:
+        K[x][y].update(['-P','-B','-S'])
+    if 'P' in K[x][y]:
+        K[x][y].update(['-W','-B','-S'])
+
+    # process confictions
+    remove_conflict(x,y,K)
+    
+    # neighbors of current cell
+    neighbors = get_neighbors(x,y,M)
+    
+    # order of processing signals
+    for s in K[x][y]:
+        # skip 'V' signal and non-valuable signals (-W,-P)
+        if s in ('V','-W','-P'):
+            continue
+        # update knowledge of univisted neighbors
+        
+        for n in neighbors:
+            nX,nY = n
+            if 'V' not in K[nX][nY]:
+                # adjacent cells of A are not wumpus or pit
+                if s == 'A' or s == 'G':
+                    K[nX][nY].update(['-P','-W'])
+                # adjacent cells of B are P
+                elif s == 'B':
+                    K[nX][nY].update(['P'])
+                # adjacent cells of S are W
+                elif s == 'S':
+                    K[nX][nY].update(['W'])
+                # adjacent cells of P are B
+                elif s == 'P':
+                    K[nX][nY].update(['B'])
+                # adjacent cells of W are S
+                elif s == 'W':
+                    K[nX][nY].update(['S'])
+                # adjacent cells of -B are -P, remove P if possible
+                elif s == '-B':
+                    if 'P' in K[nX][nY]:
+                        K[nX][nY].remove('P')
+                    K[nX][nY].update(['-P'])
+                # adjacent cells of -S are -W, remove W if possible
+                elif s == '-S':
+                    if 'W' in K[nX][nY]:
+                        K[nX][nY].remove('W')
+                    K[nX][nY].update(['-W'])
+                    
+                # not sure
+                
+                # # adjacent cells of -P are -B, remove B if possible
+                # elif s == '-P':
+                #     if 'B' in K[nX][nY]:
+                #         K[nX][nY].remove('B')
+                #     K[nX][nY].update(['-B'])
+                # # adjacent cells of -W are -S, remove S if possible
+                # elif s == '-W':
+                #     if 'S' in K[nX][nY]:
+                #         K[nX][nY].remove('S')
+                #     K[nX][nY].update(['-S'])
+    
+                
+    # post-process knowledge of adjacent cells of current cell
+    # ignore all opposite signals
+    for n in neighbors:
+        nX,nY = n
+        # if adjacent cells of current cell are not visited
+        if 'V' not in K[nX][nY]:
+            # # print(K[nX][nY])
+            # # if {'P','-P'} in K[nX][nY]:
+            # a = 'P' in K[nX][nY]
+            # b = '-P' in K[nX][nY]
+            # if (a and b) == True:
+            #     K[nX][nY].remove('P')
+            
+            # a = 'W' in K[nX][nY]
+            # b = '-W' in K[nX][nY]
+            # if (a and b) == True:
+            #     K[nX][nY].remove('W')
+                
+            # a = 'B' in K[nX][nY]
+            # b = '-B' in K[nX][nY]
+            # if (a and b) == True:
+            #     K[nX][nY].remove('B')
+            
+            # a = 'S' in K[nX][nY]
+            # b = '-S' in K[nX][nY]
+            # if (a and b) == True:
+            #     K[nX][nY].remove('S')
+            
+            remove_conflict(nX,nY,K)    
+            a = 'P' in K[nX][nY]
+            b = 'W' in K[nX][nY]
+            
+            if (a and b) == True:
+                K[nX][nY].difference_update(['P','W'])
+                # K[nX][nY].update({'P','W'})
+   
+            
+'''
+make new action base on knowledge of agent
+input:
+    x,y - position of agent
+    M   - map of game
+    K   - knowledge of agent
+    V   - matrix of visited times
+    direction - current direction of agent
+    
+    priority:
+    if next cell is valid
+    forward if safe (-W and -P)
+    shoot if maybe wumpus (W)
+    left or right if no W and P
+    back if not safe (W or P)
+output:
+    shoot (S) or move(F) signal, rotation and direction
+    all returned move are safe, choose one with the smallest visted times
+'''
+def new_action(x,y,M,K,V,direction):
+    # dir_priority = ['F','L','R','B']
+    # 0,1,2,3
+    
+    list_actions = []
+        
+    neighbors = get_neighbors(x,y,M)
+    
+    # choose from neighbors
+    for n in neighbors:
+        nX,nY = n
+        if(valid_cell(nX,nY,M)):
+            rotation,new_direction = rotate(direction,x,y,nX,nY)
+            # forward
+            if rotation == None:
+                # print(K[nX][nY])
+                a = 'P' not in K[nX][nY]
+                b = 'W' not in K[nX][nY]
+                # print(a and b)
+                c = a and b
+                # ({'P'} not in K[nX][nY]) and ({'W'} not in K[nX][nY])
+                if c == True:
+                    # return rotate(direction,x,y,forward_cell[0],forward_cell[1]),'F'
+                    list_actions.append((0,V[nX][nY],(rotation,new_direction),'F'))
+            # left
+            elif rotation == 'L':
+                if 'P' not in K[nX][nY]:
+                    # if maybe 'W', no move, just
+                    if 'W' in K[nX][nY]:
+                        # return rotate(direction,x,y,left_cell[0],left_cell[1]),'S'
+                        list_actions.append((1,V[nX][nY],(rotation,new_direction),'S'))
+                    else:
+                        # return rotate(direction,x,y,left_cell[0],left_cell[1]),'F'
+                        list_actions.append((1,V[nX][nY],(rotation,new_direction),'F'))
+            # right
+            elif rotation == 'R':
+                if 'P' not in K[nX][nY]:
+                    # if maybe 'W', no move, just
+                    if 'W' in K[nX][nY]:
+                        # return rotate(direction,x,y,right_cell[0],right_cell[1]),'S'
+                        list_actions.append((2,V[nX][nY],(rotation,new_direction),'S'))
+                    else:
+                        # return rotate(direction,x,y,right_cell[0],right_cell[1]),'F'
+                        list_actions.append((2,V[nX][nY],(rotation,new_direction),'F'))
+            # backward
+            elif rotation == 'B':
+                # return rotate(direction,x,y,backward_cell[0],backward_cell[1]),'F'
+                list_actions.append((3,V[nX][nY],(rotation,new_direction),'F'))
+    
+    # forward_cell = new_move(x,y,M,direction)
+    # # if cell is valid and safe, move forward
+    # if forward_cell is not None:
+    #     if {'W','P'} not in K[forward_cell[0]][forward_cell[1]]:
+    #         # return rotate(direction,x,y,forward_cell[0],forward_cell[1]),'F'
+    #         list_actions.append((0,V[forward_cell[0]][forward_cell[1]],rotate(direction,x,y,forward_cell[0],forward_cell[1]),'F'))
+    
+    # # if left cell is valid, not pit
+    # new_direction = 'L'
+    # left_cell = new_move(x,y,M,new_direction)
+    # if left_cell is not None:
+    #     if 'P' not in K[left_cell[0]][left_cell[1]]:
+    #         # if maybe 'W', no move, just
+    #         if 'W' in K[left_cell[0]][left_cell[1]]:
+    #             # return rotate(direction,x,y,left_cell[0],left_cell[1]),'S'
+    #             list_actions.append((1,V[left_cell[0]][left_cell[1]],rotate(direction,x,y,left_cell[0],left_cell[1]),'S'))
+    #         else:
+    #             # return rotate(direction,x,y,left_cell[0],left_cell[1]),'F'
+    #             list_actions.append((1,V[left_cell[0]][left_cell[1]],rotate(direction,x,y,left_cell[0],left_cell[1]),'F'))
+            
+    # # if right cell is valid, not pit
+    # new_direction = 'R'
+    # right_cell = new_move(x,y,M,new_direction)
+    # if right_cell is not None:
+    #     if 'P' not in K[right_cell[0]][right_cell[1]]:
+    #         # if maybe 'W', no move, just
+    #         if 'W' in K[right_cell[0]][right_cell[1]]:
+    #             # return rotate(direction,x,y,right_cell[0],right_cell[1]),'S'
+    #             list_actions.append((2,V[right_cell[0]][right_cell[1]],rotate(direction,x,y,right_cell[0],right_cell[1]),'S'))
+    #         else:
+    #             # return rotate(direction,x,y,right_cell[0],right_cell[1]),'F'
+    #             list_actions.append((2,V[right_cell[0]][right_cell[1]],rotate(direction,x,y,right_cell[0],right_cell[1]),'F'))
+            
+    # # backward if there is no safe cell
+    # direction = 'D'
+    # backward_cell = new_move(x,y,M,new_direction)
+    # # return rotate(direction,x,y,backward_cell[0],backward_cell[1]),'F'
+    # list_actions.append((3,V[backward_cell[0]][backward_cell[1]],rotate(direction,x,y,backward_cell[0],backward_cell[1]),'F'))
+    
+    # sort list of actions based on priority
+    list_actions.sort(key=lambda x: (x[1],x[0]))
+    
+    return list_actions[0][2],list_actions[0][3]
+
+
+'''
+new move base on direction
+'''
+def new_move(x,y,M,direction):
+    # up, down, left, right
+    # vertical
+    dx = [-1,1,0,0]
+    # horizontal
+    dy = [0,0,-1,1]
+    
+    nX,nY = x,y
+    if direction == 'U':
+        nX += dx[0]
+    elif direction == 'D':
+        nX += dx[1]
+    elif direction == 'L':
+        nY += dy[2]
+    elif direction == 'R':
+        nY += dy[3]
+    
+    return (nX,nY) if valid_cell(nX,nY,M) else None
+
+
+'''
+get valid neighbors of current cell
+input:
+    x,y - position of current cell
+    M   - map of game
+output:
+    a list of valid neighbors of current cell
+'''
+def get_neighbors(x,y,M):
     # (0,0) is top left in python, but (0,0) is bottom left in game
     # up, down, left, right
     # vertical
@@ -248,71 +488,18 @@ def list_of_moves(x,y,M,V,K):
     # horizontal
     dy = [0,0,-1,1]
     
+    res = []
     
     for i in range(len(dx)):
-        new_x,new_y = x+dx[i],y+dy[i]        
-                
+        new_x,new_y = x+dx[i],y+dy[i]
         if valid_cell(new_x,new_y,M):
-            # add weight to cell based on visited times and knowledge
-            weight = V[new_x][new_y]
+            res.append((new_x,new_y))
             
-            if K[new_x][new_y] == 'W':
-                weight += 3
-            # elif K[new_x][new_y] == 'E':
-            #     weight += 50
-            # # N/A knowledge
-            # elif K[new_x][new_y] == '':
-            #     weight += 30
-            # dead case
-            elif K[new_x][new_y] == 'P':
-                weight += 5
-            
-            heapq.heappush(moves,(weight,(new_x,new_y)))
-            
-    # print(moves)
-    return moves
-    
-
-# get the next "best" move for agent
-'''
-input:
-    list_moves  - list of possible moves of agent at the current position
-    M           - map of game
-output:
-    "best" move - 1. cell with the smallest visiting times and not (pit or wumpus)
-                - 2. whatever (dead move possible)
-'''
-def move(list_moves,M):
-    
-    res = None
-    # backup = []
-    
-    # # get the "best" cell
-    # # smallest visiting times
-    # # not Pit or Wumpus
-    # while len(list_moves) > 0:
-        
-    #     item = heapq.heappop(list_moves)
-        
-    #     pos = item[1]
-        
-    #     x,y = pos
-        
-    #     if M[x][y] not in ('P','W'):
-    #         res = pos
-    #         return res
-    #     else:
-    #         heapq.heappush(backup,item)
-        
-    # # return any dead cell
-    # return heapq.heappop(backup)[1]
-    
-    res = heapq.heappop(list_moves)[1]
     return res
+ 
   
-  
-# valid cell is not outside of map
 '''
+# valid cell is not outside of map
 input:
     x,y - position of cell
     M   - map of game
@@ -323,133 +510,8 @@ def valid_cell(x,y,M):
     return x >= 0 and x < len(M) and y >= 0 and y < len(M[0])
 
 
-# make inference based on first order logic (list of possible cases in __init__.py)
 '''
-input:
-    x,y - position of current cell of agent
-    val - new information of input cell (not the predicted information)
-    K   - knowledge of agent
-output:
-    updated knowledge of agent based on FOL
-'''
-# def inference(x,y,val,K):
-
-#     # get the predicted value of current cell
-#     # use the current value of current cell to make inference
-    
-#     prev = K[x][y]
-#     curr = val
-    
-#     if prev == curr:
-#         pass
-#     elif prev == '':
-#         K[x][y] = curr
-#     elif prev == 'PW' and curr in ('P','W'):
-#         K[x][y] = curr
-    
-#     elif prev in ('P','W') and curr == 'PW':
-#         K[x][y] = prev
-        
-#     elif prev in ('S','B','P','W') and curr in ('E','BS'):
-#         K[x][y] = curr
-        
-#     elif (prev,curr) == ('P','W') or (prev,curr) == ('W','P'):
-#         K[x][y] = 'E'
-        
-#     elif curr in ('B','S'):
-#         if prev not in ('B','S'):
-#             K[x][y] = curr
-#         else:
-#             K[x][y] = 'BS'
-
-def inference(x,y,val,K):
-
-    # get the predicted value of current cell
-    # use the current value of current cell to make inference
-    
-    prev = K[x][y]
-    curr = val
-    
-    # same value --> real knowledge
-    if prev == curr:
-        pass
-    # new knowledge --> real ??
-    elif prev == '':
-        K[x][y] = curr
-    # any previous knowledge 
-    # --> real knowledge because adjacent cells of E are not wumpus or pit
-    elif re.search('P|W',prev) and curr == '':
-        K[x][y] = curr
-    # comfirm of pit or wumpus because wumpus and pit are not in the same cell
-    elif prev == 'PW' and curr in ('P','W'):
-        K[x][y] = curr
-    elif prev in ('P','W') and curr == 'PW':
-        K[x][y] = prev
-    # any previous knowledge
-    # --> E is stronger than other knowledge
-    elif curr == 'E':
-        K[x][y] = curr
-    # BS is stronger than B or S, but weaker than E
-    # and B or S is not in than same cell with W or P
-    elif curr == 'BS':
-        K[x][y] = curr
-    # W and P can be in the same cell
-    elif (prev,curr) == ('P','W') or (prev,curr) == ('W','P'):
-        K[x][y] = 'E'
-    # if previous knowledge is not B or S,
-    # and current knowledge is B or S (based on wumpus or pit)
-     
-    elif curr in ('B','S'):
-        if prev not in ('B','S'):
-            K[x][y] = curr
-        else:
-            K[x][y] = 'BS'
-
-
-# update knowledge for agent based on information of previous cell, current cell, current signal, and visited times of cells
-'''
-input:
-    x_prev,y_prev   - previous position of agent
-    x_curr,y_curr   - current position of agent
-    val             - signal of current position of agent
-    K               - knowledge of agent
-    V               - matrix of visited times of cells
-output:
-    None (apply inference to update knowledge)
-'''
-def update_knowledge(x_prev,y_prev,x_curr,y_curr,val,K,V,M):
-    
-    # (0,0) is top left in python, but (0,0) is bottom left in game
-    # up, down, left, right
-    # vertical
-    dx = [-1,1,0,0]
-    # horizontal
-    dy = [0,0,-1,1]
-
-    # if M[x][y] has not reached, assign new knowledge about it and make predictions
-    if V[x_curr][y_curr] == 0:
-        # assign new value
-        K[x_curr][y_curr] = val
-        
-        # make prediction for valid adjacent cells but not the cell of agent 
-        for i in range(len(dx)):
-            x,y = x_curr+dx[i],y_curr+dy[i]
-            
-            # make prediction with valid cells and not the previous cell of agent
-            if (x,y) != (x_prev,y_prev) and valid_cell(x,y,M):
-                
-                # if a cell has not visited, information of it is just a prediction
-                # else, apply first order logic to make inference and update the knowledge of that cell
-                if V[x][y] == 0:
-                    inference(x,y,signal_pairs[val],K)
-                    
-    # apply inference on non-empty cells and non-visited cells
-    # elif V[x_curr][y_curr] == 0:
-    #     inference(x_curr,y_curr,val,K)
-
-
-# read from input file and build map
-'''
+read from input file and build map
 input:
     filename - path to input file
 output:
@@ -466,11 +528,18 @@ def build_map(filename):
         # sz = int(lines[0])
         # get value for cells, remove escape character '\n'
         rows = [[(cell[:-1] if cell.endswith('\n') else cell) for cell in line.split('.')] for line in lines]
-    
+
+
+    m = []
+    for row in rows:
+        row = [set(cell) for cell in row]
+        m.append(row)
+
     nG = 0
     nW = 0
     
-    for row in rows:
+    
+    for row in m:
         for cell in row:
             # count Wumpus
             if 'W' in cell:
@@ -479,16 +548,16 @@ def build_map(filename):
             elif 'G' in cell:
                 nG += 1
             
-    return rows,nW,nG
+    return m,nW,nG
 
-# write results to output file
+
 '''
+write results to output file
 input:
     path,score
 output:
     file at path '../output.txt'
 '''
-
 def write_ouput(path,score,filename):
     
     
@@ -555,93 +624,24 @@ def rotate(direction,x,y,x_next,y_next):
     return rotation,new_direction
         
     
-
-
 # kill wumpus
 '''
+new version for killing wumpus
 input:
     x,y - position of wumpus
-    M   - map
+    M   - map of game
+    K   - knowledge of agent
 output:
-    update knowledge if wumpus is killed
-    or return false if there is no wumpus at (x,y)
+    return True if wumpus is in M[x,y] and update M,K
+    if False (signal 'S' are still there) --> update K
 '''
-def kill(x,y,K,M):
-    # update information for cell M[x,y] as empty/safe room
-    if M[x][y] == 'W':
-        K[x][y] = 'E'
-        inference(x,y,'E',K)
-        return True
+def kill_wumpus(x,y,M,K):
+    result = False
+    if 'W' in M[x][y]:
+        result = True
     
-    return False
-    
-    
-# transform map from top-left-rooted to bottom-left-rooted
-'''
-break into 2 steps = transpose + horizontal flip
-'''
-# def transform(M):
-#     # M is a square matrix, size = 10
-#     size = len(M)
-#     # transpose
-#     for i in range(size):
-#         for j in range(i+1):
-#             M[i][j],M[j][i] = M[j][i],M[i][j]
-            
-#     # horizontal flip
-#     for i in range((size+1)/2):
-#         for j in range(size):
-#             M[i][j],M[size-i][j] = M[size-i][j],M[i][j]
-
-
-
-# ========================================================================
-# ranh roi
-
-def check_out_of_gold():
-    pass
-
-def check_out_of_wumpus():
-    pass
-
-# ========================================================================
-
-
-
-# input file & output file
-
-def report(n_maps):
-    
-    for i in range(n_maps):
-        
-        inputFile = f'input/input{i}.txt'
-        outputFile = f'output/output{i}.txt'
-        parentDir = os.path.dirname(os.path.abspath(__file__))
-        inputPath = os.path.join(parentDir, inputFile)
-        outputPath = os.path.join(parentDir, outputFile)
-        
-        M,nW,nG = build_map(inputPath)
-
-        state,iterations,nG,nW,score,actions,path,shoot_wumpus = FOLmodel(M,nG,nW)
-        print(state,'\t\t',iterations,'\t\t',nG,'\t\t',nW,'\t\t',score)
-        # write_ouput(path,score,outputPath)
-        
-               
-
-
-
-
-# cnt_maps = 5
-
-# report(cnt_maps)
-
-inputFile = 'input/input0.txt'
-outputFile = 'output/output0.txt'
-parentDir = os.path.dirname(os.path.abspath(__file__))
-inputPath = os.path.join(parentDir, inputFile)
-outputPath = os.path.join(parentDir, outputFile)
-
-M,nW,nG = build_map(inputPath)
-
-state,iterations,nG,nW,score,actions,path,shoot_wumpus = FOLmodel(M,nG,nW)
-print(state,'\t\t',iterations,'\t\t',nG,'\t',nW,'\t',score)
+    # if wumpus is in this cell, kill it and set as '-W'
+    # if wumpus is not in this cell, set as '-W'
+    K[x][y].update(['-W'])
+    update_kb(K[x][y],x,y,M,K)
+    return result
