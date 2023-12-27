@@ -25,7 +25,7 @@ input:
 output:
     state of game, number of iterations, left golds, left wumpuses, score, instruction list, path, shoot_wumpus list
 '''
-def FOLmodel(M,nG,nW):
+def FOLmodel(M:list[list[set]],nG:int,nW:int):
     # knowledge: list of signals
     K = [[set() for _ in range(len(row))] for row in M]
     # track visiting times
