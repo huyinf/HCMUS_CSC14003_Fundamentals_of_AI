@@ -9,6 +9,7 @@ from gold import Gold
 from pit import Pit
 from wumpus import Wumpus
 import propositional_logic as PropositionalLogic
+import fol_logic as FirstOrderLogic
 
 class InterfaceGraphic:
     def __init__(self):
@@ -189,10 +190,33 @@ class InterfaceGraphic:
                 ''' Chọn thuật toán '''
                 if self.choose_algorithm == 1:
                     action_list, cave_cell, cell_matrix, self.count_G, self.count_W = PropositionalLogic.AgentBrain(MAP_LIST[self.map_i - 1], OUTPUT_LIST[self.map_i - 1]).solve_wumpus_world()
+                    # print(action_list)
                 else:
-                    action_list, cave_cell, cell_matrix = None, None, None
+                    os.chdir(os.path.dirname(os.path.abspath(__file__)))
+                    inputFile = MAP_LIST[self.map_i - 1]
+                    # print(inputFile)
+                    outputFile = OUTPUT_LIST[self.map_i - 1]
+                    action_list, cave_cell, cell_matrix, self.count_G, self.count_W = PropositionalLogic.AgentBrain(inputFile,outputFile).solve_wumpus_world()
+                    # print("222222222222")
+                    # print(cave_cell)
+                    # print(self.count_G,self.count_W)
+                    # print(cell_matrix)                    
 
+
+                    fol = FirstOrderLogic.FOL(inputFile, outputFile)
+                    fol.FOLmodel()
+                    # action_list, cave_cell, cell_matrix = None, None, None
+                    action_list = fol.results()[-1]
+                    self.count_G = fol.results()[1]
+                    self.count_W = fol.results()[2]
+
+                    # print(fol.results()[0])
+                    # print(action_list)
+                
                 map_pos = cave_cell.map_pos
+
+                # print("cave cell:", cave_cell.map_pos)
+                # print("cell matrix:", cell_matrix)
 
                 self.map = Map((len(cell_matrix) - map_pos[1] + 1, map_pos[0]))
                 self.arrow = Arrow()
@@ -229,10 +253,10 @@ class InterfaceGraphic:
                     self.display_action(action)
                     # print(action)
 
-                    if action == PropositionalLogic.Action.KILL_ALL_WUMPUS_AND_GRAB_ALL_FOOD:
+                    if action == PropositionalLogic.Action.KILL_ALL_WUMPUS_AND_GRAB_ALL_FOOD or action == 'win':
                         self.state = WIN
 
-                    if action == PropositionalLogic.Action.FALL_INTO_PIT or action == PropositionalLogic.Action.BE_EATEN_BY_WUMPUS:
+                    if action == PropositionalLogic.Action.FALL_INTO_PIT or action == PropositionalLogic.Action.BE_EATEN_BY_WUMPUS or action == 'Wumpus' or action == 'Pit':
                         self.state = GAMEOVER
                         break
 
@@ -370,24 +394,24 @@ class InterfaceGraphic:
             pygame.display.update()
             
 
-        if action == PropositionalLogic.Action.TURN_LEFT:
+        if action == PropositionalLogic.Action.TURN_LEFT or action == "L":
             self.direct = self.agent.turn_left()
             update_elements()
-        elif action == PropositionalLogic.Action.TURN_RIGHT:
+        elif action == PropositionalLogic.Action.TURN_RIGHT or action == "R":
             self.direct = self.agent.turn_right()
             update_elements()
-        elif action == PropositionalLogic.Action.TURN_UP:
+        elif action == PropositionalLogic.Action.TURN_UP or action == "U":
             self.direct = self.agent.turn_up()
             update_elements()
-        elif action == PropositionalLogic.Action.TURN_DOWN:
+        elif action == PropositionalLogic.Action.TURN_DOWN or action == "D":
             self.direct = self.agent.turn_down()
             update_elements()
-        elif action == PropositionalLogic.Action.MOVE_FORWARD:
+        elif action == PropositionalLogic.Action.MOVE_FORWARD or action == "F":
             self.agent.move_forward(self.direct)
             i, j = self.agent.get_pos()
             self.map.discover_cell_i_j(i, j)
             update_elements()
-        elif action == PropositionalLogic.Action.GRAB_GOLD:
+        elif action == PropositionalLogic.Action.GRAB_GOLD or action == 'G':
             self.agent.grab_gold()
             update_elements()
             self.gold.grab_gold(self.screen, self.font)
@@ -397,12 +421,12 @@ class InterfaceGraphic:
             pass
         elif action == PropositionalLogic.Action.PERCEIVE_STENCH:
             pass
-        elif action == PropositionalLogic.Action.SHOOT:
+        elif action == PropositionalLogic.Action.SHOOT or action == 'S':
             self.agent.shoot()
             update_elements()
             i, j = self.agent.get_pos()
             self.arrow.shoot(self.direct, self.screen, i, j)
-        elif action == PropositionalLogic.Action.KILL_WUMPUS:
+        elif action == PropositionalLogic.Action.KILL_WUMPUS or action == 'K':
             i, j = self.agent.get_pos()
             if self.direct == 0:
                 i -= 1
@@ -428,15 +452,15 @@ class InterfaceGraphic:
             pygame.time.delay(1500)
         elif action == PropositionalLogic.Action.KILL_NO_WUMPUS:
             pass
-        elif action == PropositionalLogic.Action.BE_EATEN_BY_WUMPUS:
+        elif action == PropositionalLogic.Action.BE_EATEN_BY_WUMPUS or action == 'Wumpus':
             self.agent.wumpus_or_pit_collision()
             update_elements()
             self.state = GAMEOVER
-        elif action == PropositionalLogic.Action.FALL_INTO_PIT:
+        elif action == PropositionalLogic.Action.FALL_INTO_PIT or action == 'Pit':
             self.agent.wumpus_or_pit_collision()
             update_elements()
             self.state = GAMEOVER
-        elif action == PropositionalLogic.Action.KILL_ALL_WUMPUS_AND_GRAB_ALL_FOOD:
+        elif action == PropositionalLogic.Action.KILL_ALL_WUMPUS_AND_GRAB_ALL_FOOD or action == 'win':
             self.all_sprites.update()
             self.running_draw()
             self.all_sprites.draw(self.screen)
@@ -465,6 +489,8 @@ class InterfaceGraphic:
             self.map.agent_climb(self.screen, self.font)
             pygame.display.update()
             pygame.time.delay(1500)
+        elif action == None:
+            pass
         elif action == PropositionalLogic.Action.DETECT_WUMPUS:
             pass
         elif action == PropositionalLogic.Action.DETECT_NO_PIT:

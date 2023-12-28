@@ -103,7 +103,7 @@ class AgentBrain:
                 # Count Wumpus and Gold
                 if raw_map[ir][ic] == 'W':
                     self.count_W += 1   
-                if raw_map[ir][ic] == 'G':
+                if 'G' in raw_map[ir][ic]:
                     self.count_G += 1
                 
                 # Create cell
@@ -119,28 +119,28 @@ class AgentBrain:
         self.init_cell_matrix = copy.deepcopy(self.cell_matrix)
 
 
-        result, pos = self.is_valid_map()
-        if not result:
-            if pos is None:
-                raise TypeError('Input Error: The map is invalid! There is no Agent!')
-            raise TypeError('Input Error: The map is invalid! Please check at row ' + str(pos[0]) + ' and column ' + str(pos[1]) + '.')
+    #     result, pos = self.is_valid_map()
+    #     if not result:
+    #         if pos is None:
+    #             raise TypeError('Input Error: The map is invalid! There is no Agent!')
+    #         raise TypeError('Input Error: The map is invalid! Please check at row ' + str(pos[0]) + ' and column ' + str(pos[1]) + '.')
 
 
-    def is_valid_map(self):
-        for cell_row in self.cell_matrix:
-            for cell in cell_row:
-                adj_cell_list = cell.get_adj_cell_list(self.cell_matrix)
-                if cell.exist_pit():
-                    for adj_cell in adj_cell_list:
-                        if not adj_cell.exist_breeze():
-                            return False, cell.matrix_pos
-                if cell.exist_wumpus():
-                    for adj_cell in adj_cell_list:
-                        if not adj_cell.exist_stench():
-                            return False, cell.matrix_pos
-        if self.agent_cell is None:
-            return False, None
-        return True, None
+    # def is_valid_map(self):
+    #     for cell_row in self.cell_matrix:
+    #         for cell in cell_row:
+    #             adj_cell_list = cell.get_adj_cell_list(self.cell_matrix)
+    #             if cell.exist_pit():
+    #                 for adj_cell in adj_cell_list:
+    #                     if not adj_cell.exist_breeze():
+    #                         return False, cell.matrix_pos
+    #             if cell.exist_wumpus():
+    #                 for adj_cell in adj_cell_list:
+    #                     if not adj_cell.exist_stench():
+    #                         return False, cell.matrix_pos
+    #     if self.agent_cell is None:
+    #         return False, None
+    #     return True, None
 
 
     def append_event_to_output_file(self, text: str):
@@ -304,7 +304,7 @@ class AgentBrain:
                 self.KB.add_clause(clause)
 
         # print(self.KB.KB)
-        # self.append_event_to_output_file(str(self.KB.KB))
+        self.append_event_to_output_file(str(self.KB.KB))
 
     def turn_to(self, next_cell):
         if next_cell.map_pos[0] == self.agent_cell.map_pos[0]:

@@ -25,6 +25,7 @@ class KnowledgeBase:
     def infer(self, not_alpha):
         """Kiểm tra tính suy luận: nếu KB và not_alpha đồng thời không hợp lệ thì trả về True, ngược lại trả về False."""
         # Để đơn giản hóa, chúng ta chỉ kiểm tra xem có một mệnh đề trong KB mà không hợp lệ hay không
+        print('not_alpha', not_alpha)
         for clause in self.KB:
             if self.is_unsatisfiable(clause, not_alpha):
                 return True
@@ -34,6 +35,17 @@ class KnowledgeBase:
         """Kiểm tra xem hai mệnh đề có không thể đồng thời đúng hay không."""
         # Đơn giản là so sánh từng phần tử trong hai mệnh đề
         for literal in clause1:
+            print([-literal])
             if -literal in clause2:  # -literal là phủ định của literal
                 return True
         return False
+
+    # def is_unsatisfiable(self, clause1, clause2):
+    #     """Kiểm tra xem hai danh sách có không thể đồng thời đúng hay không."""
+    #     for literals1 in clause1:
+    #         for literal in literals1:
+    #             for literals2 in clause2:
+    #                 if -literal in literals2:  # -literal là phủ định của literal
+    #                     return True
+    #     return False
+
