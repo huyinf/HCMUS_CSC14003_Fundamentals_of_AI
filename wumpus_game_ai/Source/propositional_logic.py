@@ -391,7 +391,7 @@ class AgentBrain:
                 for valid_adj_cell in valid_adj_cell_list:
                     # print("Infer: ", end='')
                     # print(valid_adj_cell.map_pos)
-                    # self.append_event_to_output_file('Infer: ' + str(valid_adj_cell.map_pos))
+                    self.append_event_to_output_file('Infer: ' + str(valid_adj_cell.map_pos))
                     self.turn_to(valid_adj_cell)
 
                     # Infer Wumpus.
@@ -408,7 +408,7 @@ class AgentBrain:
                         self.add_action(Action.SHOOT)
                         self.add_action(Action.KILL_WUMPUS)
                         valid_adj_cell.kill_wumpus(self.cell_matrix, self.KB)
-                        # self.append_event_to_output_file('KB: ' + str(self.KB.KB))
+                        self.append_event_to_output_file('KB: ' + str(self.KB.KB))
 
                     # If we can not infer Wumpus.
                     else:
@@ -446,14 +446,14 @@ class AgentBrain:
                 for adj_cell in adj_cell_list:
                     # print("Try: ", end='')
                     # print(adj_cell.map_pos)
-                    # self.append_event_to_output_file('Try: ' + str(adj_cell.map_pos))
+                    self.append_event_to_output_file('Try: ' + str(adj_cell.map_pos))
                     self.turn_to(adj_cell)
 
                     self.add_action(Action.SHOOT)
                     if adj_cell.exist_wumpus():
                         self.add_action(Action.KILL_WUMPUS)
                         adj_cell.kill_wumpus(self.cell_matrix, self.KB)
-                        # self.append_event_to_output_file('KB: ' + str(self.KB.KB))
+                        self.append_event_to_output_file('KB: ' + str(self.KB.KB))
 
                     if not self.agent_cell.exist_stench():
                         self.agent_cell.update_child_list([adj_cell])
@@ -466,7 +466,7 @@ class AgentBrain:
                 for valid_adj_cell in valid_adj_cell_list:
                     # print("Infer: ", end='')
                     # print(valid_adj_cell.map_pos)
-                    # self.append_event_to_output_file('Infer: ' + str(valid_adj_cell.map_pos))
+                    self.append_event_to_output_file('Infer: ' + str(valid_adj_cell.map_pos))
                     self.turn_to(valid_adj_cell)
 
                     # Infer Pit.
@@ -532,22 +532,12 @@ class AgentBrain:
 
         return True
 
-
     def solve_wumpus_world(self):
         # Reset file output
         out_file = open(self.output_filename, 'w')
         out_file.close()
 
         self.backtracking_search()
-
-        # victory_flag = True
-        # for cell_row in self.cell_matrix:
-        #     for cell in cell_row:
-        #         if cell.exist_gold() or cell.exist_wumpus():
-        #             victory_flag = False
-        #             break
-        # if victory_flag:
-        #     self.add_action(Action.KILL_ALL_WUMPUS_AND_GRAB_ALL_FOOD)
 
         if self.agent_cell.parent == self.cave_cell:
             self.add_action(Action.CLIMB_OUT_OF_THE_CAVE)
