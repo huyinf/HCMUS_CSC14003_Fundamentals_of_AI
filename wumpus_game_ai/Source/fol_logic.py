@@ -181,12 +181,12 @@ class FOL:
             
             # check loop case
             if self.loop() == True:
-                print('iterations =',iterations)
-                print('loop here:',self.curr_pos)
-                self.state = 'out_to_win'
+                # print('iterations =',iterations)
+                # print('loop here:',self.curr_pos)
+                self.state = 'out'
                 out_path = bfs(self.M,self.curr_pos,self.exit_pos)
                 out_path = out_path[1:]
-                print('out_path:',out_path)
+                # print('out_path:',out_path)
 
                 for pos in out_path:
                     # get new rotation and direction
@@ -210,6 +210,8 @@ class FOL:
                     # update current position
                     self.curr_pos = pos
                 
+                # climb out 
+                self.cuong.append('out')
                 return
             
             # make next action: shoot or move
@@ -683,7 +685,7 @@ class FOL:
         visited_set = set()
         for x in range(0,len(self.V)):
             for y in range(0,len(self.V[0])):
-                if self.V[x][y] >= 2:
+                if self.V[x][y] > 0:
                     visited_set.update([(x,y)])
                     
         pos_set = set()
@@ -708,15 +710,15 @@ class FOL:
             # print('instruction: ',actions)
             # print("number of iterations: ",100-k)
             
-os.chdir(os.path.dirname(os.path.abspath(__file__)))
-inputFile = '../Input/map3.txt'
-outputFile = '../Output/output0.txt'
-parentDir = os.path.dirname(os.path.abspath(__file__))
-inputPath = os.path.join(parentDir, inputFile)
-outputPath = os.path.join(parentDir, outputFile)
+# os.chdir(os.path.dirname(os.path.abspath(__file__)))
+# inputFile = '../Input/map3.txt'
+# outputFile = '../Output/output0.txt'
+# parentDir = os.path.dirname(os.path.abspath(__file__))
+# inputPath = os.path.join(parentDir, inputFile)
+# outputPath = os.path.join(parentDir, outputFile)
 
 
-obj = FOL(inputFile,outputFile)
-obj.FOLmodel()
-# obj.write_ouput()
-print(obj.results()[0])
+# obj = FOL(inputFile,outputFile)
+# obj.FOLmodel()
+# # obj.write_ouput()
+# print(obj.results()[0])
