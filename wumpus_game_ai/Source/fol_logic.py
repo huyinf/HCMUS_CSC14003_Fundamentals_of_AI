@@ -1,5 +1,5 @@
 # from generate_map import *
-
+from bfs import *
 import heapq
 import re
 import os
@@ -177,6 +177,39 @@ class FOL:
                 self.state = 'win'
                 self.cuong.append('win')
                 # return self.results()
+                return
+            
+            # check loop case
+            if self.loop() == True:
+                print('iterations =',iterations)
+                print('loop here:',self.curr_pos)
+                self.state = 'out_to_win'
+                out_path = bfs(self.M,self.curr_pos,self.exit_pos)
+                out_path = out_path[1:]
+                print('out_path:',out_path)
+
+                for pos in out_path:
+                    # get new rotation and direction
+                    rotation,self.direction = self.rotate(self.curr_pos[0],self.curr_pos[1],pos[0],pos[1])
+                    self.actions.append(rotation)
+                    self.actions.append(self.direction)
+                    
+                    # cuong.append(rotation)
+                    self.cuong.append(self.direction)
+                    self.cuong.append('F')
+                    
+                    self.pos_list.append(pos)
+                    if self.path == [] or pos != self.path[-1]:
+                        self.path.append(pos)
+                    
+                    self.score -= 10
+                    self.scores_list.append(self.score)
+                    
+                    iterations += 1
+                    
+                    # update current position
+                    self.curr_pos = pos
+                
                 return
             
             # make next action: shoot or move
@@ -613,6 +646,55 @@ class FOL:
         self.K[x][y].update(['-W'])
         self.update_kb(self.K[x][y],x,y)
         return result
+    
+    '''
+    agent proactively wants to out game
+    input:
+        # desired state - default None if agent detect loop case, or 'out'
+        curr - current position of agent
+        M - map of game
+        exit_pos - 
+    output:
+        a path two out game and neccessary information
+        (path finding algorithm: breadth-first-search)
+    '''
+    def out_game(self):
+        path = bfs2(self.M,self.curr_pos,self.exit_pos)
+        pass
+
+    '''
+    detect loop case
+
+    if all of visited cells (more than once) are in list of visited positions of agent
+    and there is no extra cell, agent is in loop case
+
+    input:
+        V - visited times matrix
+        pos_list - list of visited positions
+    ouput:
+        loop or not
+    '''
+
+    def loop(self):
+
+        if(len(self.pos_list) == 0):
+            return False
+        
+        visited_set = set()
+        for x in range(0,len(self.V)):
+            for y in range(0,len(self.V[0])):
+                if self.V[x][y] >= 2:
+                    visited_set.update([(x,y)])
+                    
+        pos_set = set()
+        for pos in self.pos_list:
+            pos_set.update([pos])
+            
+        l1 = sorted(list(pos_set))
+        l2 = sorted(list(visited_set))
+            
+        return l1 == l2          
+
     
     def results(self):
         return self.state,self.G_init,self.W_init,self.score,self.actions,self.path,self.pos_list,self.shoot_wumpus,self.cuong
