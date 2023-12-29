@@ -50,7 +50,7 @@ class InterfaceGraphic:
         1. Proposional Logic
         2. First Order Logic
         '''
-        self.choose_algorithm = 1
+        self.choose_algorithm = 2
 
         '''
         0: up
@@ -200,7 +200,7 @@ class InterfaceGraphic:
                     # print("222222222222")
                     # print(cave_cell)
                     # print(self.count_G,self.count_W)
-                    # print(cell_matrix)                    
+                    # print(cell_matrix)
 
 
                     fol = FirstOrderLogic.FOL(inputFile, outputFile)
