@@ -50,7 +50,7 @@ class InterfaceGraphic:
         1. Proposional Logic
         2. First Order Logic
         '''
-        self.choose_algorithm = 2
+        self.choose_algorithm = 1
 
         '''
         0: up
