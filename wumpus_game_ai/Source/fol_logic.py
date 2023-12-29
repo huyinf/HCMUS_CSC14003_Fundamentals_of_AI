@@ -716,20 +716,13 @@ class FOL:
 # parentDir = os.path.dirname(os.path.abspath(__file__))
 # inputPath = os.path.join(parentDir, inputFile)
 # outputPath = os.path.join(parentDir, outputFile)
-<<<<<<< HEAD
-
 
 # obj = FOL(inputFile,outputFile)
 # obj.FOLmodel()
 # # obj.write_ouput()
 # print(obj.results()[0])
 
-
-=======
-
-
 # obj = FOL(inputFile,outputFile)
 # obj.FOLmodel()
 # # obj.write_ouput()
 # print(obj.results()[0])
->>>>>>> a1799b9f9266ce08fc04cbe0c2ae28b69df77108
