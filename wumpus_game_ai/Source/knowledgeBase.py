@@ -25,7 +25,10 @@ class KnowledgeBase:
     def infer(self, not_alpha):
         """Kiểm tra tính suy luận: nếu KB và not_alpha đồng thời không hợp lệ thì trả về True, ngược lại trả về False."""
         # Để đơn giản hóa, chúng ta chỉ kiểm tra xem có một mệnh đề trong KB mà không hợp lệ hay không
-        for clause in self.KB:
+
+        extended_kb = copy.deepcopy(self.KB)
+        
+        for clause in extended_kb:
             if self.is_unsatisfiable(clause, not_alpha):
                 return True
         return False
