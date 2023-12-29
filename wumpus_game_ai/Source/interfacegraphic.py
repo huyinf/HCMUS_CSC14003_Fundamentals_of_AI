@@ -481,7 +481,7 @@ class InterfaceGraphic:
             self.map.pit_detect(i, j)
             update_elements()
             pygame.time.delay(1500)
-        elif action == PropositionalLogic.Action.CLIMB_OUT_OF_THE_CAVE:
+        elif action == PropositionalLogic.Action.CLIMB_OUT_OF_THE_CAVE or action == 'out':
             self.agent.climb()
             self.all_sprites.update()
             self.running_draw()
