@@ -123,6 +123,7 @@ def print_map(M):
 def map_to_file(M,filename):
     
     with open(filename,"w") as f:
+        f.write(str(size)+'\n')
         for row in M:
             line = ".".join(row)
             f.write(line+'\n')
@@ -158,4 +159,4 @@ def generate_maps(size:int = size,nW:int = nW,nP:int = nP,nG:int = nG,cnt_maps:i
 
 
 # # sample run
-# generate_maps(size,nW,nP,nG,cnt)
+generate_maps(size,nW,nP,nG,cnt)

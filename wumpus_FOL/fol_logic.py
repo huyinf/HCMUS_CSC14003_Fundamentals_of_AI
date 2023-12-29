@@ -142,14 +142,16 @@ class FOL:
                 self.V[x][y] += 1
             # print(K)
             
-            # make next action: shoot or move
-            (rotation,new_direction),action = self.new_action(x,y)
+            
             # check state of agent
             # get all golds and kill all wumpuses
             if self.nG == 0 and self.nW == 0:
                 self.state = 'win'
                 # return self.results()
                 return
+            
+            # make next action: shoot or move
+            (rotation,new_direction),action = self.new_action(x,y)
             
             # if game is still running, update action
             self.actions.append(rotation)
@@ -462,7 +464,7 @@ class FOL:
             # get size of map --> map: sz x sz
             # sz = int(lines[0])
             # get value for cells, remove escape character '\n'
-            rows = [[(cell[:-1] if cell.endswith('\n') else cell) for cell in line.split('.')] for line in lines]
+            rows = [[(cell[:-1] if cell.endswith('\n') else cell) for cell in line.split('.')] for line in lines[1:]]
 
 
         m = []
@@ -594,7 +596,7 @@ class FOL:
             # print('instruction: ',actions)
             # print("number of iterations: ",100-k)
             
-inputFile = 'input/input0.txt'
+inputFile = 'input/map1.txt'
 outputFile = 'output/output0.txt'
 parentDir = os.path.dirname(os.path.abspath(__file__))
 inputPath = os.path.join(parentDir, inputFile)

@@ -1,5 +1,5 @@
 # from generate_map import *
-
+from bfs import *
 import heapq
 import re
 import os
@@ -107,18 +107,18 @@ class FOL:
                 
             x,y = self.curr_pos    
 
-            if self.curr_pos == self.exit_pos and self.V[x-1][y] >= 2 and self.V[x][y+1] >= 2:
-                rotation,new_direction = self.rotate(self.direction,x,y,x,y-1)
-                self.actions.append(rotation)
-                self.append('F')
-                self.direction = new_direction
-                self.score -= 10
-                self.scores_list.append(self.score)
-                self.state = 'out'
-                self.cuong.append(self.direction)
-                self.cuong.append(action)
-                self.cuong.append('out')
-                return    
+            # if self.curr_pos == self.exit_pos and self.V[x-1][y] >= 2 and self.V[x][y+1] >= 2:
+            #     rotation,new_direction = self.rotate(self.direction,x,y,x,y-1)
+            #     self.actions.append(rotation)
+            #     self.append('F')
+            #     self.direction = new_direction
+            #     self.score -= 10
+            #     self.scores_list.append(self.score)
+            #     self.state = 'out'
+            #     self.cuong.append(self.direction)
+            #     self.cuong.append(action)
+            #     self.cuong.append('out')
+            #     return    
             
             signal = self.M[x][y]
             
@@ -130,15 +130,21 @@ class FOL:
                 # stupid defined logic leads this shit code
                 self.remove_conflict(x,y)
                 # check dead case: W or P in signals
-                if 'W' in self.K[x][y] or 'P' in self.K[x][y]:
+                if 'W' in self.K[x][y]:
                     # if W or P in current cell, dead
                     self.state = 'die'
                     self.score -= 10000
                     self.scores_list.append(self.score)
-                    hasW = 'Wumpus' if 'W' in self.K[x][y] else None
-                    hasP = 'Pit' if 'P' in self.K[x][y] else None
-                    kq = hasP if hasP is not None else hasW
-                    self.cuong.append(kq)
+                    self.cuong.append('Wumpus')
+                    # return results()
+                    return
+                
+                if 'P' in self.K[x][y]:
+                    # if W or P in current cell, dead
+                    self.state = 'die'
+                    self.score -= 10000
+                    self.scores_list.append(self.score)
+                    self.cuong.append('Pit')
                     # return results()
                     return
                 
@@ -164,8 +170,7 @@ class FOL:
                 self.V[x][y] += 1
             # print(K)
             
-            # make next action: shoot or move
-            (rotation,new_direction),action = self.new_action(x,y)
+            
             # check state of agent
             # get all golds and kill all wumpuses
             if self.nG == 0 and self.nW == 0:
@@ -173,6 +178,42 @@ class FOL:
                 self.cuong.append('win')
                 # return self.results()
                 return
+            
+            # check loop case
+            if self.loop() == True:
+                print('iterations =',iterations)
+                print('loop here:',self.curr_pos)
+                self.state = 'out_to_win'
+                out_path = bfs(self.M,self.curr_pos,self.exit_pos)
+                out_path = out_path[1:]
+                print('out_path:',out_path)
+
+                for pos in out_path:
+                    # get new rotation and direction
+                    rotation,self.direction = self.rotate(self.curr_pos[0],self.curr_pos[1],pos[0],pos[1])
+                    self.actions.append(rotation)
+                    self.actions.append(self.direction)
+                    
+                    # cuong.append(rotation)
+                    self.cuong.append(self.direction)
+                    self.cuong.append('F')
+                    
+                    self.pos_list.append(pos)
+                    if self.path == [] or pos != self.path[-1]:
+                        self.path.append(pos)
+                    
+                    self.score -= 10
+                    self.scores_list.append(self.score)
+                    
+                    iterations += 1
+                    
+                    # update current position
+                    self.curr_pos = pos
+                
+                return
+            
+            # make next action: shoot or move
+            (rotation,new_direction),action = self.new_action(x,y)
             
             # if game is still running, update action
             self.actions.append(rotation)
@@ -201,12 +242,13 @@ class FOL:
                 self.curr_pos = self.new_move(x,y)
 
 
-                self.actions.append(rotation)
-                self.actions.append(action)
-                self.direction = new_direction
+                # self.actions.append(rotation)
+                # self.actions.append(action)
+                # self.direction = new_direction
 
-                self.cuong.append(self.direction)
-                self.cuong.append(action)
+                # self.cuong.append(self.direction)
+                # self.cuong.append(action)
+                
                 self.score -= 10
                 self.scores_list.append(self.score)
             
@@ -327,12 +369,7 @@ class FOL:
             # if adjacent cells of current cell are not visited
             if 'V' not in self.K[nX][nY]:
                 
-                self.remove_conflict(nX,nY)   
-                a = 'P' in self.K[nX][nY]
-                b = 'W' in self.K[nX][nY]
-                if (a and b) == True:
-                    self.K[nX][nY].difference_update(['P','W'])
-    
+                self.remove_conflict(nX,nY) 
                 
     '''
     make new action base on knowledge of agent
@@ -610,6 +647,55 @@ class FOL:
         self.update_kb(self.K[x][y],x,y)
         return result
     
+    '''
+    agent proactively wants to out game
+    input:
+        # desired state - default None if agent detect loop case, or 'out'
+        curr - current position of agent
+        M - map of game
+        exit_pos - 
+    output:
+        a path two out game and neccessary information
+        (path finding algorithm: breadth-first-search)
+    '''
+    def out_game(self):
+        path = bfs2(self.M,self.curr_pos,self.exit_pos)
+        pass
+
+    '''
+    detect loop case
+
+    if all of visited cells (more than once) are in list of visited positions of agent
+    and there is no extra cell, agent is in loop case
+
+    input:
+        V - visited times matrix
+        pos_list - list of visited positions
+    ouput:
+        loop or not
+    '''
+
+    def loop(self):
+
+        if(len(self.pos_list) == 0):
+            return False
+        
+        visited_set = set()
+        for x in range(0,len(self.V)):
+            for y in range(0,len(self.V[0])):
+                if self.V[x][y] >= 2:
+                    visited_set.update([(x,y)])
+                    
+        pos_set = set()
+        for pos in self.pos_list:
+            pos_set.update([pos])
+            
+        l1 = sorted(list(pos_set))
+        l2 = sorted(list(visited_set))
+            
+        return l1 == l2          
+
+    
     def results(self):
         return self.state,self.G_init,self.W_init,self.score,self.actions,self.path,self.pos_list,self.shoot_wumpus,self.cuong
         
@@ -622,15 +708,15 @@ class FOL:
             # print('instruction: ',actions)
             # print("number of iterations: ",100-k)
             
-# os.chdir(os.path.dirname(os.path.abspath(__file__)))
-# inputFile = '../Input/map1.txt'
-# outputFile = '../Output/output0.txt'
-# parentDir = os.path.dirname(os.path.abspath(__file__))
-# inputPath = os.path.join(parentDir, inputFile)
-# outputPath = os.path.join(parentDir, outputFile)
+os.chdir(os.path.dirname(os.path.abspath(__file__)))
+inputFile = '../Input/map3.txt'
+outputFile = '../Output/output0.txt'
+parentDir = os.path.dirname(os.path.abspath(__file__))
+inputPath = os.path.join(parentDir, inputFile)
+outputPath = os.path.join(parentDir, outputFile)
 
 
-# obj = FOL(inputFile,outputFile)
-# obj.FOLmodel()
-# # obj.write_ouput()
-# print(obj.results()[0])
+obj = FOL(inputFile,outputFile)
+obj.FOLmodel()
+# obj.write_ouput()
+print(obj.results()[0])
