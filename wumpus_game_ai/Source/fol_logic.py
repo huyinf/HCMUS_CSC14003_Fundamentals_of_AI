@@ -106,19 +106,6 @@ class FOL:
                 break
                 
             x,y = self.curr_pos    
-
-            # if self.curr_pos == self.exit_pos and self.V[x-1][y] >= 2 and self.V[x][y+1] >= 2:
-            #     rotation,new_direction = self.rotate(self.direction,x,y,x,y-1)
-            #     self.actions.append(rotation)
-            #     self.append('F')
-            #     self.direction = new_direction
-            #     self.score -= 10
-            #     self.scores_list.append(self.score)
-            #     self.state = 'out'
-            #     self.cuong.append(self.direction)
-            #     self.cuong.append(action)
-            #     self.cuong.append('out')
-            #     return    
             
             signal = self.M[x][y]
             
@@ -137,21 +124,21 @@ class FOL:
                     self.scores_list.append(self.score)
                     self.cuong.append('Wumpus')
                     # return results()
-                    return
+                    # return
                 
-                if 'P' in self.K[x][y]:
+                elif 'P' in self.K[x][y]:
                     # if W or P in current cell, dead
                     self.state = 'die'
                     self.score -= 10000
                     self.scores_list.append(self.score)
                     self.cuong.append('Pit')
                     # return results()
-                    return
+                    # return
                 
                 # if agent is still alive and game is still running
                 
                 # regardless of knowledge, update knowledge with new information
-                if 'G' in self.K[x][y]:
+                elif 'G' in self.K[x][y]:
                     self.cuong.append('G')
                     # if map is out of gold, no action
                     self.nG = max(self.nG-1,0)
@@ -163,6 +150,13 @@ class FOL:
                 self.update_kb(self.K[x][y],x,y)
                 # update current cell as visited
                 self.K[x][y].update(['V'])
+                '''
+                debug
+                '''
+                # self.write_knowledge(f'./results/knowledge/csv/knowledge{self.iterations}.csv')
+
+                if self.state == 'die':
+                    return
             
             # record visited times of cells
             # if last action was shooting, no increase
@@ -697,7 +691,35 @@ class FOL:
             
         return l1 == l2          
 
-    
+    '''
+    tricky loop detection
+    if current cell has visited times bigger than its neighbors do
+    and its neighbors are also visited at least once
+
+    ==> this is loop case
+
+    input:
+        V - visited times matrix
+        x,y - position of current cell
+        M - map of game
+    output:
+        loop or not
+    '''    
+
+    def tricky_loop(self,x,y):
+        # neighbors of current cell
+        neighbors = self.get_neighbors(x,y)
+        
+        # if current cell has visited times bigger than its neighbors do
+        # and its neighbors are also visited at least once
+        for n in neighbors:
+            nX,nY = n
+            if self.V[x][y] <= self.V[nX][nY] or self.V[nX][nY] <= 1:
+                return False
+            
+        return True
+
+
     def results(self):
         return self.state,self.G_init,self.W_init,self.score,self.actions,self.path,self.pos_list,self.shoot_wumpus,self.cuong
         
