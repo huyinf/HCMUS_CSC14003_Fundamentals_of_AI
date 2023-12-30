@@ -79,6 +79,7 @@ class AgentBrain:
         self.KB = knowledgeBase.KnowledgeBase()
         self.path = []
         self.action_list = []
+        self.len_path = 0
         self.score = 0
         
         ''' Đếm số gold và wumpus ban đầu có trong map '''
@@ -89,7 +90,6 @@ class AgentBrain:
         self.count_W = 0
         self.count_G = 0
         self.read_map(map_filename)
-
 
     def read_map(self, map_filename):
         file = open(map_filename, 'r')
@@ -117,7 +117,6 @@ class AgentBrain:
         self.count_W_init = self.count_W   
         
         self.init_cell_matrix = copy.deepcopy(self.cell_matrix)
-        
     #     result, pos = self.is_valid_map()
     #     if not result:
     #         if pos is None:
@@ -143,15 +142,16 @@ class AgentBrain:
 
 
     def append_event_to_output_file(self, text: str):
-        out_file = open(self.output_filename, 'a')
-        out_file.write(text + '\n')
-        out_file.close()
+        if self.output_filename == OUTPUT_LIST1:
+            out_file = open(self.output_filename, 'a')
+            out_file.write(text + '\n')
+            out_file.close()
 
 
     def add_action(self, action):
         self.action_list.append(action)
         # print(action)
-        self.append_event_to_output_file(action.name)
+        # self.append_event_to_output_file(action.name)
 
         if action == Action.TURN_LEFT:
             pass
@@ -164,11 +164,11 @@ class AgentBrain:
         elif action == Action.MOVE_FORWARD:
             self.score -= 10
             # print('Score: ' + str(self.score))
-            self.append_event_to_output_file('Score: ' + str(self.score))
+            # self.append_event_to_output_file('Score: ' + str(self.score))
         elif action == Action.GRAB_GOLD:
             self.score += 100
             # print('Score: ' + str(self.score))
-            self.append_event_to_output_file('Score: ' + str(self.score))
+            # self.append_event_to_output_file('Score: ' + str(self.score))
             self.count_G -= 1
         elif action == Action.PERCEIVE_BREEZE:
             pass
@@ -177,7 +177,7 @@ class AgentBrain:
         elif action == Action.SHOOT:
             self.score -= 100
             # print('Score: ' + str(self.score))
-            self.append_event_to_output_file('Score: ' + str(self.score))
+            # self.append_event_to_output_file('Score: ' + str(self.score))
         elif action == Action.KILL_WUMPUS:
             self.count_W -= 1
             pass
@@ -186,17 +186,17 @@ class AgentBrain:
         elif action == Action.BE_EATEN_BY_WUMPUS:
             self.score -= 10000
             # print('Score: ' + str(self.score))
-            self.append_event_to_output_file('Score: ' + str(self.score))
+            # self.append_event_to_output_file('Score: ' + str(self.score))
         elif action == Action.FALL_INTO_PIT:
             self.score -= 10000
             # print('Score: ' + str(self.score))
-            self.append_event_to_output_file('Score: ' + str(self.score))
+            # self.append_event_to_output_file('Score: ' + str(self.score))
         elif action == Action.KILL_ALL_WUMPUS_AND_GRAB_ALL_FOOD:
             pass
         elif action == Action.CLIMB_OUT_OF_THE_CAVE:
             self.score += 10
             # print('Score: ' + str(self.score))
-            self.append_event_to_output_file('Score: ' + str(self.score))
+            # self.append_event_to_output_file('Score: ' + str(self.score))
         elif action == Action.DECTECT_PIT:
             pass
         elif action == Action.DETECT_WUMPUS:
@@ -228,24 +228,24 @@ class AgentBrain:
         #        * If a cell has Wumpus, then it can not have Pit.
 
         # PL: Pit?
-        sign = '-'
-        if cell1.exist_pit():
-            sign = '+'
-            self.KB.add_clause([cell1.get_literal(cell.Object.WUMPUS, '-')])
-        self.KB.add_clause([cell1.get_literal(cell.Object.PIT, sign)])
-        sign_pit = sign
+        # sign = '-'
+        # # if cell1.exist_pit():
+        # #     sign = '+'
+        # #     self.KB.add_clause([cell1.get_literal(cell.Object.WUMPUS, '-')])
+        # # self.KB.add_clause([cell1.get_literal(cell.Object.PIT, sign)])
+        # sign_pit = sign
 
-        # PL: Wumpus?
-        sign = '-'
-        if cell1.exist_wumpus():
-            sign = '+'
-            self.KB.add_clause([cell1.get_literal(cell.Object.PIT, '-')])
-        self.KB.add_clause([cell1.get_literal(cell.Object.WUMPUS, sign)])
-        sign_wumpus = sign
+        # # PL: Wumpus?
+        # sign = '-'
+        # if cell1.exist_wumpus():
+        #     sign = '+'
+        #     self.KB.add_clause([cell1.get_literal(cell.Object.PIT, '-')])
+        # self.KB.add_clause([cell1.get_literal(cell.Object.WUMPUS, sign)])
+        # sign_wumpus = sign
 
         # Check the above constraint.
-        if sign_pit == sign_wumpus == '+':
-            raise TypeError('Logic Error: Pit and Wumpus can not appear at the same cell.')
+        # if sign_pit == sign_wumpus == '+':
+        #     raise TypeError('Logic Error: Pit and Wumpus can not appear at the same cell.')
 
         # PL: Breeze?
         sign = '-'
@@ -269,10 +269,10 @@ class AgentBrain:
             self.KB.add_clause(clause)
 
             # Pa v Pb v Pc v Pd => B
-            for adj_cell in adj_cell_list:
-                clause = [cell1.get_literal(cell.Object.BREEZE, '+'),
-                        adj_cell.get_literal(cell.Object.PIT, '-')]
-                self.KB.add_clause(clause)
+            # for adj_cell in adj_cell_list:
+            #     clause = [cell1.get_literal(cell.Object.BREEZE, '+'),
+            #             adj_cell.get_literal(cell.Object.PIT, '-')]
+            #     self.KB.add_clause(clause)
 
         # PL: This cell has no Breeze then all of adjacent cells has no Pit.
         # -Pa ^ -Pb ^ -Pc ^ -Pd
@@ -289,11 +289,11 @@ class AgentBrain:
                 clause.append(adj_cell.get_literal(cell.Object.WUMPUS, '+'))
             self.KB.add_clause(clause)
 
-            # Wa v Wb v Wc v Wd => S
-            for adj_cell in adj_cell_list:
-                clause = [cell1.get_literal(cell.Object.STENCH, '+'),
-                        adj_cell.get_literal(cell.Object.WUMPUS, '-')]
-                self.KB.add_clause(clause)
+            # # Wa v Wb v Wc v Wd => S
+            # for adj_cell in adj_cell_list:
+            #     clause = [cell1.get_literal(cell.Object.STENCH, '+'),
+            #             adj_cell.get_literal(cell.Object.WUMPUS, '-')]
+            #     self.KB.add_clause(clause)
 
         # PL: This cell has no Stench then all of adjacent cells has no Wumpus.
         # -Wa ^ -Wb ^ -Wc ^ -Wd
@@ -303,7 +303,7 @@ class AgentBrain:
                 self.KB.add_clause(clause)
 
         # print(self.KB.KB)
-        self.append_event_to_output_file(str(self.KB.KB))
+        # self.append_event_to_output_file(str(self.KB.KB))
 
     def turn_to(self, next_cell):
         if next_cell.map_pos[0] == self.agent_cell.map_pos[0]:
@@ -345,7 +345,7 @@ class AgentBrain:
         # If there is Gold, Agent grabs Gold.
         if self.agent_cell.exist_gold():
             self.add_action(Action.GRAB_GOLD)
-            # self.agent_cell.grab_gold()
+            self.agent_cell.grab_gold()
 
         # If there is Breeze, Agent perceives Breeze.
         if self.agent_cell.exist_breeze():
@@ -390,7 +390,7 @@ class AgentBrain:
                 for valid_adj_cell in valid_adj_cell_list:
                     # print("Infer: ", end='')
                     # print(valid_adj_cell.map_pos)
-                    self.append_event_to_output_file('Infer: ' + str(valid_adj_cell.map_pos))
+                    # self.append_event_to_output_file('Infer: ' + str(valid_adj_cell.map_pos))
                     self.turn_to(valid_adj_cell)
 
                     # Infer Wumpus.
@@ -407,7 +407,7 @@ class AgentBrain:
                         self.add_action(Action.SHOOT)
                         self.add_action(Action.KILL_WUMPUS)
                         valid_adj_cell.kill_wumpus(self.cell_matrix, self.KB)
-                        self.append_event_to_output_file('KB: ' + str(self.KB.KB))
+                        # self.append_event_to_output_file('KB: ' + str(self.KB.KB))
 
                     # If we can not infer Wumpus.
                     else:
@@ -427,45 +427,12 @@ class AgentBrain:
                             if valid_adj_cell not in temp_adj_cell_list:
                                 temp_adj_cell_list.append(valid_adj_cell)
 
-
-            # If this cell still has Stench after trying to infer,
-            # the Agent will try to shoot all of valid directions till Stench disappear.
-            if self.agent_cell.exist_stench():
-                adj_cell_list = self.agent_cell.get_adj_cell_list(self.cell_matrix)
-                if self.agent_cell.parent in adj_cell_list:
-                    adj_cell_list.remove(self.agent_cell.parent)
-
-                explored_cell_list = []
-                for adj_cell in adj_cell_list:
-                    if adj_cell.is_explored():
-                        explored_cell_list.append(adj_cell)
-                for explored_cell in explored_cell_list:
-                    adj_cell_list.remove(explored_cell)
-
-                for adj_cell in adj_cell_list:
-                    # print("Try: ", end='')
-                    # print(adj_cell.map_pos)
-                    self.append_event_to_output_file('Try: ' + str(adj_cell.map_pos))
-                    self.turn_to(adj_cell)
-
-                    self.add_action(Action.SHOOT)
-                    if adj_cell.exist_wumpus():
-                        self.add_action(Action.KILL_WUMPUS)
-                        adj_cell.kill_wumpus(self.cell_matrix, self.KB)
-                        self.append_event_to_output_file('KB: ' + str(self.KB.KB))
-
-                    if not self.agent_cell.exist_stench():
-                        self.agent_cell.update_child_list([adj_cell])
-                        break
-
-
-            # If the current cell has Breeze, Agent infers whether the adjacent cells have Pit.
             if self.agent_cell.exist_breeze():
                 valid_adj_cell: cell.Cell
                 for valid_adj_cell in valid_adj_cell_list:
                     # print("Infer: ", end='')
                     # print(valid_adj_cell.map_pos)
-                    self.append_event_to_output_file('Infer: ' + str(valid_adj_cell.map_pos))
+                    # self.append_event_to_output_file('Infer: ' + str(valid_adj_cell.map_pos))
                     self.turn_to(valid_adj_cell)
 
                     # Infer Pit.
@@ -507,12 +474,45 @@ class AgentBrain:
                             # Discard these cells from the valid_adj_cell_list.
                             temp_adj_cell_list.append(valid_adj_cell)
 
+            # If this cell still has Stench after trying to infer,
+            # the Agent will try to shoot all of valid directions till Stench disappear.
+            if self.agent_cell.exist_stench():
+                adj_cell_list = self.agent_cell.get_adj_cell_list(self.cell_matrix)
+                if self.agent_cell.parent in adj_cell_list:
+                    adj_cell_list.remove(self.agent_cell.parent)
+
+                explored_cell_list = []
+                for adj_cell in adj_cell_list:
+                    if adj_cell.is_explored():
+                        explored_cell_list.append(adj_cell)
+                for explored_cell in explored_cell_list:
+                    adj_cell_list.remove(explored_cell)
+
+                for adj_cell in adj_cell_list:
+                    # print("Try: ", end='')
+                    # print(adj_cell.map_pos)
+                    # self.append_event_to_output_file('Try: ' + str(adj_cell.map_pos))
+                    self.turn_to(adj_cell)
+
+                    self.add_action(Action.SHOOT)
+                    if adj_cell.exist_wumpus():
+                        self.add_action(Action.KILL_WUMPUS)
+                        adj_cell.kill_wumpus(self.cell_matrix, self.KB)
+                        # self.append_event_to_output_file('KB: ' + str(self.KB.KB))
+
+                    if not self.agent_cell.exist_stench():
+                        self.agent_cell.update_child_list([adj_cell])
+                        break
+
+            # If the current cell has Breeze, Agent infers whether the adjacent cells have Pit.
+
         temp_adj_cell_list = list(set(temp_adj_cell_list))
 
         # Select all of the valid nexts cell from the current cell.
         for adj_cell in temp_adj_cell_list:
             valid_adj_cell_list.remove(adj_cell)
         self.agent_cell.update_child_list(valid_adj_cell_list)
+        
 
         # Move to all of the valid next cells sequentially.
         for next_cell in self.agent_cell.child_list:
@@ -536,9 +536,18 @@ class AgentBrain:
         out_file = open(self.output_filename, 'w')
         out_file.close()
 
+        self.append_event_to_output_file('start: (1, 1)')
         self.backtracking_search()
 
         if self.agent_cell.parent == self.cave_cell:
             self.add_action(Action.CLIMB_OUT_OF_THE_CAVE)
-
+    
+        for action in self.action_list:
+            if action == Action.MOVE_FORWARD:
+                self.len_path += 1
+        
+        print('Length path propositional logic: ',self.len_path)
+        self.append_event_to_output_file('SCORE: ' + str(self.score))
+        self.append_event_to_output_file('Length path propositional logic: ' + str(self.len_path))
+        
         return self.action_list, self.init_agent_cell, self.init_cell_matrix, self.count_G_init, self.count_W_init

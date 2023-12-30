@@ -10,6 +10,8 @@ from pit import Pit
 from wumpus import Wumpus
 import propositional_logic as PropositionalLogic
 import fol_logic as FirstOrderLogic
+import time
+
 
 class InterfaceGraphic:
     def __init__(self):
@@ -44,6 +46,8 @@ class InterfaceGraphic:
         self.arrow = None
         self.state = MAP
         self.map_i = 1
+        
+        self.output_file = OUTPUT_LIST1
 
         ''' 
         Chọn thuật toán để chạy game 
@@ -189,27 +193,35 @@ class InterfaceGraphic:
                 self.count_W = 0
                 ''' Chọn thuật toán '''
                 if self.choose_algorithm == 1:
-                    action_list, cave_cell, cell_matrix, self.count_G, self.count_W = PropositionalLogic.AgentBrain(MAP_LIST[self.map_i - 1], OUTPUT_LIST[self.map_i - 1]).solve_wumpus_world()
+                    start_time = time.time()
+                    action_list, cave_cell, cell_matrix, self.count_G, self.count_W = PropositionalLogic.AgentBrain(MAP_LIST[self.map_i - 1], self.output_file[self.map_i - 1]).solve_wumpus_world()
                     # print(action_list)
+                    end_time = time.time()
+                    elapsed_time = end_time - start_time
+                    print('Time: ', elapsed_time)
+                    # PropositionalLogic.AgentBrain(MAP_LIST[self.map_i - 1], self.output_file[self.map_i - 1]).append_event_to_output_file("Time" + str(elapsed_time))
                 else:
+                    self.output_file = OUTPUT_LIST2
                     os.chdir(os.path.dirname(os.path.abspath(__file__)))
                     inputFile = MAP_LIST[self.map_i - 1]
                     # print(inputFile)
-                    outputFile = OUTPUT_LIST[self.map_i - 1]
+                    outputFile = self.output_file[self.map_i - 1]
                     action_list, cave_cell, cell_matrix, self.count_G, self.count_W = PropositionalLogic.AgentBrain(inputFile,outputFile).solve_wumpus_world()
-                    # print("222222222222")
-                    # print(cave_cell)
-                    # print(self.count_G,self.count_W)
-                    # print(cell_matrix)
 
-
+                    
                     fol = FirstOrderLogic.FOL(inputFile, outputFile)
+                    start_time = time.time()
                     fol.FOLmodel()
+
                     # action_list, cave_cell, cell_matrix = None, None, None
                     action_list = fol.results()[-1]
                     self.count_G = fol.results()[1]
                     self.count_W = fol.results()[2]
 
+                    end_time = time.time()
+                    elapsed_time = end_time - start_time
+                    print('Time: ', elapsed_time)
+                    
                     # print(fol.results()[0])
                     # print(action_list)
                 
