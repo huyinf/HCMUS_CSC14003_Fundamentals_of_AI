@@ -202,7 +202,10 @@ class InterfaceGraphic:
                     end_time = time.time()
                     elapsed_time = end_time - start_time
                     print('Time: ', elapsed_time)
-                    # PropositionalLogic.AgentBrain(MAP_LIST[self.map_i - 1], self.output_file[self.map_i - 1]).append_event_to_output_file("Time" + str(elapsed_time))
+                    
+                    # write time to output file
+                    with open (self.output_file[self.map_i - 1], 'a') as f:
+                        f.write('Time: ' + str(elapsed_time) + '\n')
                 else:
                     os.chdir(os.path.dirname(os.path.abspath(__file__)))
                     inputFile = MAP_LIST[self.map_i - 1]
@@ -214,8 +217,6 @@ class InterfaceGraphic:
                     fol = FirstOrderLogic.FOL(inputFile, outputFile)
                     start_time = time.time()
                     fol.FOLmodel()
-                    
-                    
 
                     # action_list, cave_cell, cell_matrix = None, None, None
                     action_list = fol.results()[-1]
