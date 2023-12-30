@@ -1,0 +1,17 @@
+start: (1, 1)
+Move to: (2, 1)
+Backtrack: (1, 1)
+Move to: (1, 2)
+Move to: (2, 2)
+Move to: (3, 2)
+Backtrack: (2, 2)
+Move to: (2, 3)
+Backtrack: (2, 2)
+Backtrack: (1, 2)
+Move to: (1, 3)
+Move to: (1, 4)
+Backtrack: (1, 3)
+Backtrack: (1, 2)
+Backtrack: (1, 1)
+SCORE: -130
+Length path propositional logic: 14

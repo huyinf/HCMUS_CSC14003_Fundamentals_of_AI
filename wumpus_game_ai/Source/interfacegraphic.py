@@ -48,6 +48,7 @@ class InterfaceGraphic:
         self.map_i = 1
         
         self.output_file = OUTPUT_LIST1
+        print(OUTPUT_LIST1)
 
         ''' 
         Chọn thuật toán để chạy game 
@@ -177,10 +178,12 @@ class InterfaceGraphic:
                             self.choose_algorithm = 1
                             print(1)
                             self.state = MAP
+                            self.output_file = OUTPUT_LIST1
                         if textRect2.collidepoint(event.pos):
                             self.choose_algorithm = 2
                             print(2)
                             self.state = MAP
+                            self.output_file = OUTPUT_LIST2
 
                     self.screen.blit(text1, textRect1)
                     self.screen.blit(text2, textRect2)
@@ -201,7 +204,6 @@ class InterfaceGraphic:
                     print('Time: ', elapsed_time)
                     # PropositionalLogic.AgentBrain(MAP_LIST[self.map_i - 1], self.output_file[self.map_i - 1]).append_event_to_output_file("Time" + str(elapsed_time))
                 else:
-                    self.output_file = OUTPUT_LIST2
                     os.chdir(os.path.dirname(os.path.abspath(__file__)))
                     inputFile = MAP_LIST[self.map_i - 1]
                     # print(inputFile)
@@ -212,6 +214,7 @@ class InterfaceGraphic:
                     fol = FirstOrderLogic.FOL(inputFile, outputFile)
                     start_time = time.time()
                     fol.FOLmodel()
+                    fol.write_ouput()
 
                     # action_list, cave_cell, cell_matrix = None, None, None
                     action_list = fol.results()[-1]

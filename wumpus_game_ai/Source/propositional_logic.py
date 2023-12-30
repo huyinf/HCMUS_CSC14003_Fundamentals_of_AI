@@ -119,7 +119,7 @@ class AgentBrain:
         self.init_cell_matrix = copy.deepcopy(self.cell_matrix)
 
     def append_event_to_output_file(self, text: str):
-        if self.output_filename == OUTPUT_LIST1:
+        if self.output_filename in OUTPUT_LIST1:
             out_file = open(self.output_filename, 'a')
             out_file.write(text + '\n')
             out_file.close()
