@@ -178,3 +178,4 @@ Move to: (1, 3)
 Move to: (1, 4)
 SCORE: -1470
 Length path propositional logic: 177
+Time: 7.117937088012695
