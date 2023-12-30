@@ -20,4 +20,5 @@
 (1,2)
 (1,1)
 length of path: 20
-score: -190Time: 0.001004934310913086
+score: -190
+Time: 0.0
