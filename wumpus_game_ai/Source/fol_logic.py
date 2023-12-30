@@ -145,6 +145,9 @@ class FOL:
                     self.K[x][y].remove('G')
                     # gold is not in same room with wumpus or pit
                     self.K[x][y].update(['-P','-W'])
+                    # get 100 points
+                    self.score += 100
+                    self.scores_list.append(self.score)
 
                 # process signals of current cell for adjacent cells
                 self.update_kb(self.K[x][y],x,y)
@@ -205,6 +208,8 @@ class FOL:
                     # update current position
                     self.curr_pos = pos
                 
+                self.score += 10
+                self.scores_list.append(self.score)
                 # climb out 
                 self.cuong.append('out')
                 return
@@ -560,9 +565,18 @@ class FOL:
     '''
     def write_ouput(self):
         with open(self.outputFile,'w') as f:
-            for pos in self.path:    
-                f.write(f"({pos[0]},{pos[1]})\n")
-            f.write(str(self.score))
+            # change position
+            x,y = self.start_pos
+            
+            x = y+1
+            y = len(self.M)-self.start_pos[0]
+            
+            f.write(f"({x},{y})\n")
+            for pos in self.path:
+                x,y = pos[1]+1,len(self.M)-pos[0]    
+                f.write(f"({x},{y})\n")
+            f.write('length of path: ' + str(len(self.path))+ '\n')
+            f.write('score: '+ str(self.score)+'\n')
             
 
     # rotation

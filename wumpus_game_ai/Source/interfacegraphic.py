@@ -214,7 +214,8 @@ class InterfaceGraphic:
                     fol = FirstOrderLogic.FOL(inputFile, outputFile)
                     start_time = time.time()
                     fol.FOLmodel()
-                    fol.write_ouput()
+                    
+                    
 
                     # action_list, cave_cell, cell_matrix = None, None, None
                     action_list = fol.results()[-1]
@@ -222,8 +223,13 @@ class InterfaceGraphic:
                     self.count_W = fol.results()[2]
 
                     end_time = time.time()
+                    
                     elapsed_time = end_time - start_time
                     print('Time: ', elapsed_time)
+                    fol.write_ouput()
+                    # write time to output file
+                    with open (outputFile, 'a') as f:
+                        f.write('Time: ' + str(elapsed_time) + '\n')
                     
                     # print(fol.results()[0])
                     # print(action_list)
