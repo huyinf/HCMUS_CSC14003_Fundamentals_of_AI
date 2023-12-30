@@ -739,6 +739,10 @@ class FOL:
 # inputPath = os.path.join(parentDir, inputFile)
 # outputPath = os.path.join(parentDir, outputFile)
 
+# obj = FOL(inputFile,outputFile)
+# obj.FOLmodel()
+# # obj.write_ouput()
+# print(obj.results()[0])
 
 # obj = FOL(inputFile,outputFile)
 # obj.FOLmodel()
