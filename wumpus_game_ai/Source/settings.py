@@ -1,7 +1,7 @@
 import pygame
 
 # Speed
-SPEED = 30  # Change the speed of the game here.
+SPEED = 40  # Change the speed of the game here.
 
 # Window
 SCREEN_WIDTH = 1200
@@ -31,14 +31,18 @@ MAP_LIST = ['../Input/map1.txt',
 MAP_NUM = len(MAP_LIST)
 
 # Output
-OUTPUT_LIST = ['../Output/result_1.txt',
-                '../Output/result_2.txt',
-                '../Output/result_3.txt',
-                '../Output/result_4.txt',
-                '../Output/result_5.txt']
+OUTPUT_LIST1 = ['../Output_Pro/result1.txt',
+                '../Output_Pro/result2.txt',
+                '../Output_Pro/result3.txt',
+                '../Output_Pro/result4.txt',
+                '../Output_Pro/result5.txt']
 
-# FONTS = '../Fonts/mrsmonster.ttf'
-# FONTS = '../Fonts/ChrustyRock-ORLA.ttf'
+OUTPUT_LIST2 = ['../Output_FOL/result1.txt',
+                '../Output_FOL/result2.txt',
+                '../Output_FOL/result3.txt',
+                '../Output_FOL/result4.txt',
+                '../Output_FOL/result5.txt']
+
 FONTS = '../Fonts/YeastyFlavorsRegular-yweyd.ttf'
 
 # Colors

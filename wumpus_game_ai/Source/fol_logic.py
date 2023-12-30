@@ -710,19 +710,14 @@ class FOL:
             # print('instruction: ',actions)
             # print("number of iterations: ",100-k)
             
-# os.chdir(os.path.dirname(os.path.abspath(__file__)))
-# inputFile = '../Input/map3.txt'
-# outputFile = '../Output/output0.txt'
-# parentDir = os.path.dirname(os.path.abspath(__file__))
-# inputPath = os.path.join(parentDir, inputFile)
-# outputPath = os.path.join(parentDir, outputFile)
+os.chdir(os.path.dirname(os.path.abspath(__file__)))
+inputFile = '../Input/map3.txt'
+outputFile = '../Output/output0.txt'
+parentDir = os.path.dirname(os.path.abspath(__file__))
+inputPath = os.path.join(parentDir, inputFile)
+outputPath = os.path.join(parentDir, outputFile)
 
-# obj = FOL(inputFile,outputFile)
-# obj.FOLmodel()
-# # obj.write_ouput()
-# print(obj.results()[0])
-
-# obj = FOL(inputFile,outputFile)
-# obj.FOLmodel()
-# # obj.write_ouput()
-# print(obj.results()[0])
+obj = FOL(inputFile,outputFile)
+obj.FOLmodel()
+# obj.write_ouput()
+print(obj.results()[0])
