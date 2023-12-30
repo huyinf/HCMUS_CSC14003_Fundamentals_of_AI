@@ -1,5 +1,5 @@
 # from generate_map import *
-
+from bfs import *
 import heapq
 import re
 import os
@@ -45,6 +45,10 @@ class FOL:
         # init knowledge and visited matrix
         self.K = []
         self.V = []
+
+        # self ghep code huong
+        # huong va ban
+        self.cuong = []
         
 
 
@@ -55,7 +59,7 @@ class FOL:
         number of golds nG
         number of wumpus nW
     output:
-        state of game, number of iterations, left golds, left wumpuses, score, instruction list, path, shoot_wumpus list
+        state of game, number of self.iterations, left golds, left wumpuses, score, instruction list, path, shoot_wumpus list
     '''
     def FOLmodel(self):
         
@@ -89,19 +93,23 @@ class FOL:
         self.V[x][y] = 1
         
         k = 1000
-        iterations = 0
+        self.iterations = 0
         
         # run until win or die or out
         while True:
-            iterations += 1
+            self.iterations += 1
+            # self.write_knowledge(f'./results/knowledge/csv/knowledge{self.iterations}.csv')
+            
             
             # k -= 1
             # use for report
-            if iterations >= k:
-                iterations -= 1
+            if self.iterations >= k:
+                self.iterations -= 1
                 break
                 
-            x,y = self.curr_pos        
+            x,y = self.curr_pos    
+
+            
             
             signal = self.M[x][y]
             
@@ -113,18 +121,29 @@ class FOL:
                 # stupid defined logic leads this shit code
                 self.remove_conflict(x,y)
                 # check dead case: W or P in signals
-                if 'W' in self.K[x][y] or 'P' in self.K[x][y]:
+                if 'W' in self.K[x][y]:
                     # if W or P in current cell, dead
                     self.state = 'die'
                     self.score -= 10000
                     self.scores_list.append(self.score)
+                    self.cuong.append('Wumpus')
                     # return results()
-                    return
+                    # return
+                
+                elif 'P' in self.K[x][y]:
+                    # if W or P in current cell, dead
+                    self.state = 'die'
+                    self.score -= 10000
+                    self.scores_list.append(self.score)
+                    self.cuong.append('Pit')
+                    # return results()
+                    # return
                 
                 # if agent is still alive and game is still running
                 
                 # regardless of knowledge, update knowledge with new information
-                if 'G' in self.K[x][y]:
+                elif 'G' in self.K[x][y]:
+                    self.cuong.append('G')
                     # if map is out of gold, no action
                     self.nG = max(self.nG-1,0)
                     self.K[x][y].remove('G')
@@ -135,6 +154,13 @@ class FOL:
                 self.update_kb(self.K[x][y],x,y)
                 # update current cell as visited
                 self.K[x][y].update(['V'])
+                '''
+                debug
+                '''
+                # self.write_knowledge(f'./results/knowledge/csv/knowledge{self.iterations}.csv')
+
+                if self.state == 'die':
+                    return
             
             # record visited times of cells
             # if last action was shooting, no increase
@@ -147,7 +173,46 @@ class FOL:
             # get all golds and kill all wumpuses
             if self.nG == 0 and self.nW == 0:
                 self.state = 'win'
+                self.cuong.append('win')
                 # return self.results()
+                return
+            
+            # check loop case
+            if self.loop() == True:
+            # if self.tricky_loop(x,y) == True:
+                # print('self.iterations =',self.iterations)
+                # print('loop here:',self.curr_pos)
+                # print('number of visited cells:',len(self.pos_list))
+                
+                self.state = 'out'
+                out_path = bfs(self.M,self.curr_pos,self.exit_pos)
+                out_path = out_path[1:]
+                # print('out_path:',out_path)
+
+                for pos in out_path:
+                    # get new rotation and direction
+                    rotation,self.direction = self.rotate(self.curr_pos[0],self.curr_pos[1],pos[0],pos[1])
+                    self.actions.append(rotation)
+                    self.actions.append(self.direction)
+                    
+                    # cuong.append(rotation)
+                    self.cuong.append(self.direction)
+                    self.cuong.append('F')
+                    
+                    self.pos_list.append(pos)
+                    if self.path == [] or pos != self.path[-1]:
+                        self.path.append(pos)
+                    
+                    self.score -= 10
+                    self.scores_list.append(self.score)
+                    
+                    self.iterations += 1
+                    
+                    # update current position
+                    self.curr_pos = pos
+                
+                # climb out 
+                self.cuong.append('out')
                 return
             
             # make next action: shoot or move
@@ -158,12 +223,16 @@ class FOL:
             self.actions.append(action)
             # update new direction
             self.direction = new_direction
+            # code cuong
+            self.cuong.append(self.direction)
+            self.cuong.append(action)
             
             # if agent shoots, preserve old direction and shoot
             if action == 'S':
                 new_pos = self.new_move(x,y)
                 if self.kill_wumpus(new_pos[0],new_pos[1]) == True:
                     self.nW = max(self.nW-1,0)
+                    self.cuong.append('K')
                 # record shooting positions
                 self.shoot_wumpus.append(new_pos)
                 # update score after shooting
@@ -174,9 +243,17 @@ class FOL:
             if action == 'F':
                 # if moving but not shooting
                 self.curr_pos = self.new_move(x,y)
+
+
+                # self.actions.append(rotation)
+                # self.actions.append(action)
+                # self.direction = new_direction
+
+                # self.cuong.append(self.direction)
+                # self.cuong.append(action)
                 
-            self.score -= 10
-            self.scores_list.append(self.score)
+                self.score -= 10
+                self.scores_list.append(self.score)
             
             # update path and record visited cells
             self.pos_list.append(self.curr_pos)
@@ -184,17 +261,8 @@ class FOL:
             if self.path == [] or self.path[-1] != self.curr_pos:
                 self.path.append(self.curr_pos)
 
-            # more optimal design, but not implemented:
-            # if agent can not find more optimal move, agent proactively finds the exit postion to end game
             
-            # climb out of the cave
-            if len(self.actions) > 0 and self.actions[-1] == 'F' and self.direction == 'L' and self.curr_pos == self.exit_pos:
-                self.state = 'out'
-                # a helper function for this case, not implemented
-                # return self.results()
-                return
-        
-        # if game cannot end in 100 iterations, it is a loop 
+        # if game cannot end in 100 self.iterations, it is a loop 
         self.state = 'loop'
         # return self.results()
         return
@@ -304,13 +372,7 @@ class FOL:
             # if adjacent cells of current cell are not visited
             if 'V' not in self.K[nX][nY]:
                 
-                self.remove_conflict(nX,nY)   
-                 
-                a = 'P' in self.K[nX][nY]
-                b = 'W' in self.K[nX][nY]
-                if (a and b) == True:
-                    self.K[nX][nY].difference_update(['P','W'])
-    
+                self.remove_conflict(nX,nY) 
                 
     '''
     make new action base on knowledge of agent
@@ -355,6 +417,8 @@ class FOL:
                     if c == True:
                         # return rotate(direction,x,y,forward_cell[0],forward_cell[1]),'F'
                         list_actions.append((0,self.V[nX][nY],(rotation,new_direction),'F'))
+                    elif a == True and b == False:
+                        list_actions.append((0,self.V[nX][nY],(rotation,new_direction),'S'))
                 # left
                 elif rotation == 'L':
                     if 'P' not in self.K[nX][nY]:
@@ -490,6 +554,8 @@ class FOL:
         self.nW = nW
         self.M = m
 
+        self.G_init = self.nG
+        self.W_init = self.nW
 
     '''
     write results to output file
@@ -584,8 +650,102 @@ class FOL:
         self.update_kb(self.K[x][y],x,y)
         return result
     
+    '''
+    agent proactively wants to out game
+    input:
+        # desired state - default None if agent detect loop case, or 'out'
+        curr - current position of agent
+        M - map of game
+        exit_pos - 
+    output:
+        a path two out game and neccessary information
+        (path finding algorithm: breadth-first-search)
+    '''
+    def out_game(self):
+        path = bfs2(self.M,self.curr_pos,self.exit_pos)
+        pass
+
+    '''
+    detect loop case
+
+    if all of visited cells (more than once) are in list of visited positions of agent
+    and there is no extra cell, agent is in loop case
+
+    trick: skipp 'safe' cells, even they are not visited
+    (-P,-W,-S,-B)
+    
+    input:
+        V - visited times matrix
+        pos_list - list of visited positions
+    ouput:
+        loop or not
+    '''
+
+    def loop(self):
+
+        if(len(self.pos_list) == 0):
+            return False
+        
+        visited_set = set()
+        for x in range(0,len(self.V)):
+            for y in range(0,len(self.V[0])):
+                if self.V[x][y] > 0:
+                    visited_set.update([(x,y)])
+                    
+        pos_set = set()
+        for pos in self.pos_list:
+            pos_set.update([pos])
+            
+        l1 = sorted(list(pos_set))
+        l2 = sorted(list(visited_set))
+            
+        return l1 == l2          
+
+    '''
+    tricky loop detection
+    if current cell has visited times bigger than its neighbors do
+    and its neighbors are also visited at least once
+
+    ==> this is loop case
+
+    input:
+        V - visited times matrix
+        x,y - position of current cell
+        M - map of game
+    output:
+        loop or not
+    '''    
+
+    def tricky_loop(self,x,y):
+        # neighbors of current cell
+        neighbors = self.get_neighbors(x,y)
+        
+        # if current cell has visited times bigger than its neighbors do
+        # and its neighbors are also visited at least once
+        for n in neighbors:
+            nX,nY = n
+            if self.V[x][y] <= self.V[nX][nY] or self.V[nX][nY] <= 1:
+                return False
+            
+        return True
+
+    
+    # '''
+    # optimize path finding algorithm
+    # '''
+    # def write_knowledge(self,filename):
+    #     with open(filename,'w') as f:
+    #         for row in self.K:
+    #             for cell in row:
+    #                 data = '_'.join([str(x.replace('-','!') if '-' in x else x) for x in sorted(cell)])
+    #                 f.write(str(data) + ',')
+    #             f.write('\n')
+ 
+    
     def results(self):
-        return self.state,self.nG,self.nW,self.score,self.actions,self.path,self.pos_list,self.shoot_wumpus
+        # print(self.K)
+        # print(self.actions)
+        return self.state,self.G_init,self.W_init,self.score,self.actions,self.path,self.pos_list,self.shoot_wumpus,self.cuong
         
             # print('knowledge:',K)
             # print("Visited times:",V)      
@@ -594,16 +754,29 @@ class FOL:
             # print('left wumpuses:',nW)
             # print('left golds:',nG)
             # print('instruction: ',actions)
-            # print("number of iterations: ",100-k)
+            # print("number of self.iterations: ",100-k)
             
-inputFile = 'input/map1.txt'
-outputFile = 'output/output0.txt'
-parentDir = os.path.dirname(os.path.abspath(__file__))
-inputPath = os.path.join(parentDir, inputFile)
-outputPath = os.path.join(parentDir, outputFile)
+# os.chdir(os.path.dirname(os.path.abspath(__file__)))
+# inputFile = './input/input0.txt'
+# outputFile = '../Output/output0.txt'
+# parentDir = os.path.dirname(os.path.abspath(__file__))
+# inputPath = os.path.join(parentDir, inputFile)
+# # outputPath = os.path.join(parentDir, outputFile)
 
 
-obj = FOL(inputPath,outputPath)
-obj.FOLmodel()
-obj.write_ouput()
-print(obj.results()[0])
+# obj = FOL(inputFile,outputFile)
+# obj.FOLmodel()
+# # obj.write_ouput()
+# res = obj.results()
+# state = res[0]
+# nG = res[1]
+# nW = res[2]
+# score = res[3]
+# actions = res[4]
+# path = res[5]
+# pos_list = res[6]
+# shoot_wumpus = res[7]
+# cuong = res[8]
+# iterations = res[-1]
+# print('\n')
+# print('\t'.join(map(str,[state,nG,nW,score,len(pos_list),iterations])))

@@ -117,6 +117,7 @@ class AgentBrain:
         self.count_W_init = self.count_W   
         
         self.init_cell_matrix = copy.deepcopy(self.cell_matrix)
+        
     #     result, pos = self.is_valid_map()
     #     if not result:
     #         if pos is None:

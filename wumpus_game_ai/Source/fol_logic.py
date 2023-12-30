@@ -679,7 +679,7 @@ class FOL:
         visited_set = set()
         for x in range(0,len(self.V)):
             for y in range(0,len(self.V[0])):
-                if self.V[x][y] > 0:
+                if self.V[x][y] > 1:
                     visited_set.update([(x,y)])
                     
         pos_set = set()
