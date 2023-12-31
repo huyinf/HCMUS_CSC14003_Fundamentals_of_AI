@@ -100,4 +100,4 @@ Backtrack: (5, 7)
 Move to: (5, 8)
 SCORE: -1090
 Length path propositional logic: 99
-Time: 0.9375910758972168
+Time: 0.8083782196044922

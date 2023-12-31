@@ -551,3 +551,9 @@ class AgentBrain:
         self.append_event_to_output_file('Length path propositional logic: ' + str(self.len_path))
         
         return self.action_list, self.init_agent_cell, self.init_cell_matrix, self.count_G_init, self.count_W_init
+
+    def get_cell_matrix(self):
+        return self.init_cell_matrix
+    
+    def get_cave_cell(self):
+        return self.init_agent_cell

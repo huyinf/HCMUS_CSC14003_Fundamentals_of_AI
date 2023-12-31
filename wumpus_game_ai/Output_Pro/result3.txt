@@ -15,4 +15,4 @@ Backtrack: (1, 2)
 Backtrack: (1, 1)
 SCORE: -130
 Length path propositional logic: 14
-Time: 0.08462667465209961
+Time: 0.07853007316589355

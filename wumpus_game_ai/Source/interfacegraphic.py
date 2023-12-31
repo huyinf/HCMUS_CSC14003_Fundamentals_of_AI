@@ -48,7 +48,7 @@ class InterfaceGraphic:
         self.map_i = 1
         
         self.output_file = OUTPUT_LIST1
-        print(OUTPUT_LIST1)
+        # print(OUTPUT_LIST1)
 
         ''' 
         Chọn thuật toán để chạy game 
@@ -211,8 +211,9 @@ class InterfaceGraphic:
                     inputFile = MAP_LIST[self.map_i - 1]
                     # print(inputFile)
                     outputFile = self.output_file[self.map_i - 1]
-                    action_list, cave_cell, cell_matrix, self.count_G, self.count_W = PropositionalLogic.AgentBrain(inputFile,outputFile).solve_wumpus_world()
-
+                    # action_list, cave_cell, cell_matrix, self.count_G, self.count_W = PropositionalLogic.AgentBrain(inputFile,outputFile).solve_wumpus_world()
+                    cave_cell = PropositionalLogic.AgentBrain(inputFile,outputFile).get_cave_cell()
+                    cell_matrix = PropositionalLogic.AgentBrain(inputFile,outputFile).get_cell_matrix()
                     
                     fol = FirstOrderLogic.FOL(inputFile, outputFile)
                     start_time = time.time()

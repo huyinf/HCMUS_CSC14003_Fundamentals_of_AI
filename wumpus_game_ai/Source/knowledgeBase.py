@@ -1,13 +1,10 @@
 import copy
 
-# Kiểm tra xem hai literal có phải là các literal bù của nhau không
-def is_complentary_literals(literal_1, literal_2):
-    return (literal_1 + literal_2 == 0)
-
 # Kiểm tra một clause có hợp lệ hay không (tức là không có hai literal bù của nhau trong cùng một clause)
 def is_valid_clause(clause):
     for i in range(len(clause) - 1):
-        if is_complentary_literals(clause[i], clause[i + 1]):
+        # Kiểm tra xem hai literal có phải là các literal bù của nhau không
+        if clause[i] + clause[i + 1] == 0:
             return True
     return False
 
@@ -37,7 +34,7 @@ def resolve(clause_1, clause_2):
     resolvents = []
     for i in range(len(clause_1)):
         for j in range(len(clause_2)):
-            if is_complentary_literals(clause_1[i], clause_2[j]):
+            if clause_1[i] + clause_2[j] == 0:
                 resolvent = clause_1[:i] + clause_1[i + 1:] + clause_2[:j] + clause_2[j + 1:]
                 resolvents.append(standard_clause(resolvent))
     return resolvents
@@ -81,11 +78,13 @@ class KnowledgeBase:
     def standardize_clause(self, clause):
         return sorted(list(set(clause)))
 
+    # Thêm clause
     def add_clause(self, clause):
         clause = self.standardize_clause(clause)
         if clause not in self.KB:
             self.KB.append(clause)
-
+    
+    # Xóa clause
     def del_clause(self, clause):
         clause = self.standardize_clause(clause)
         if clause in self.KB:

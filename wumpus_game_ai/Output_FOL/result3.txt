@@ -21,4 +21,4 @@
 (1,1)
 length of path: 20
 score: -190
-Time: 0.0
+Time: 0.0005345344543457031
