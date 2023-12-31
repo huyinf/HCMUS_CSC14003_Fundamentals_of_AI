@@ -95,13 +95,3 @@ class KnowledgeBase:
         clause_list = copy.deepcopy(self.KB)
         state = pl_resolution(clause_list, neg_alpha)
         return state
-
-# # Dữ liệu kiểm thử
-# KB = [[-1, 2], [1, -2], [1, 2]]
-# alpha = [[-1]]
-# kb = KnowledgeBase()
-# kb.add_clause(KB[0])
-# kb.add_clause(KB[1])
-# kb.add_clause(KB[2])
-# result = kb.infer(alpha)
-# print(result)  # Kết quả in ra là True

@@ -209,9 +209,7 @@ class InterfaceGraphic:
                 else:
                     os.chdir(os.path.dirname(os.path.abspath(__file__)))
                     inputFile = MAP_LIST[self.map_i - 1]
-                    # print(inputFile)
                     outputFile = self.output_file[self.map_i - 1]
-                    # action_list, cave_cell, cell_matrix, self.count_G, self.count_W = PropositionalLogic.AgentBrain(inputFile,outputFile).solve_wumpus_world()
                     cave_cell = PropositionalLogic.AgentBrain(inputFile,outputFile).get_cave_cell()
                     cell_matrix = PropositionalLogic.AgentBrain(inputFile,outputFile).get_cell_matrix()
                     
@@ -233,14 +231,10 @@ class InterfaceGraphic:
                     with open (outputFile, 'a') as f:
                         f.write('Time: ' + str(elapsed_time) + '\n')
                     
-                    # print(fol.results()[0])
-                    # print(action_list)
-                
+                 
                 map_pos = cave_cell.map_pos
 
-                # print("cave cell:", cave_cell.map_pos)
-                # print("cell matrix:", cell_matrix)
-
+              
                 self.map = Map((len(cell_matrix) - map_pos[1] + 1, map_pos[0]))
                 self.arrow = Arrow()
                 self.gold = Gold()
@@ -274,7 +268,6 @@ class InterfaceGraphic:
                 for action in action_list:
                     pygame.time.delay(SPEED)
                     self.display_action(action)
-                    # print(action)
 
                     if action == PropositionalLogic.Action.KILL_ALL_WUMPUS_AND_GRAB_ALL_FOOD or action == 'win':
                         self.state = WIN
